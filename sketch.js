@@ -123,7 +123,7 @@ function mousePressed() {
 function setupGameElements() {
   // Responsive canvas sizing for desktop and mobile
   const maxW = 900;
-  const maxH = 600;
+  const maxH = 540; // Reduce vertical height for desktop to avoid scrolling
   let w = window.innerWidth;
   let h = window.innerHeight;
   let aspect = 3 / 2;
@@ -209,28 +209,29 @@ function calculateBounceAngle(ballY, paddleY, paddleHeight) {
   return bounceAngle;
 }
 
-// Add improved touch controls for both players
+// Improved touch controls for both players (fix for p5.js canvas)
 function setupTouchControls() {
-  const canvas = document.querySelector('canvas');
   let touchStartX = null;
   let touchStartY = null;
   let activePlayer = null;
 
-  canvas.addEventListener('touchstart', (event) => {
+  window.addEventListener('touchstart', (event) => {
     if (event.touches.length === 1) {
       const touch = event.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
+      const rect = document.querySelector('canvas').getBoundingClientRect();
+      touchStartX = touch.clientX - rect.left;
+      touchStartY = touch.clientY - rect.top;
       // Left half for Player 1, right half for Player 2
       activePlayer = (touchStartX < canvasWidth / 2) ? 'mal' : 'evie';
     }
     event.preventDefault();
   }, { passive: false });
 
-  canvas.addEventListener('touchmove', (event) => {
+  window.addEventListener('touchmove', (event) => {
     if (event.touches.length === 1) {
       const touch = event.touches[0];
-      const touchCurrentY = touch.clientY;
+      const rect = document.querySelector('canvas').getBoundingClientRect();
+      const touchCurrentY = touch.clientY - rect.top;
       const deltaY = touchCurrentY - touchStartY;
       if (activePlayer === 'mal') {
         if (deltaY > 0 && playerMal.y < canvasHeight - playerMal.height / 2) {
