@@ -23,6 +23,12 @@ Welcome to Descendants Magic Pong! A fun two-player game themed after Disney's D
 2. Select "Open with Live Server"
 3. The game will open in your web browser
 
+## GitHub Pages URL
+
+You can view the game live on GitHub Pages:
+
+[https://shawnzam.github.io/Pong-to-Be-Wicked/](https://shawnzam.github.io/Pong-to-Be-Wicked/)
+
 ## Fun Ways to Modify the Game
 
 Ideas you and your daughter might enjoy trying:
