@@ -196,11 +196,41 @@ function calculateBounceAngle(ballY, paddleY, paddleHeight) {
   return bounceAngle;
 }
 
+// Add touch controls for mobile devices
+function setupTouchControls() {
+  const canvas = document.querySelector('canvas');
+
+  let touchStartY = null;
+  canvas.addEventListener('touchstart', (event) => {
+    touchStartY = event.touches[0].clientY;
+  });
+
+  canvas.addEventListener('touchmove', (event) => {
+    const touchCurrentY = event.touches[0].clientY;
+    const deltaY = touchCurrentY - touchStartY;
+
+    if (deltaY > 0) {
+      // Move paddle down
+      if (playerMal.y < canvasHeight - playerMal.height / 2) {
+        playerMal.y += playerMal.speed;
+      }
+    } else {
+      // Move paddle up
+      if (playerMal.y > playerMal.height / 2) {
+        playerMal.y -= playerMal.speed;
+      }
+    }
+
+    touchStartY = touchCurrentY;
+  });
+}
+
 // p5.js setup function - runs once at the beginning
 function setup() {
   setupGameElements(); // Ensure canvas dimensions are set
   let canvas = createCanvas(canvasWidth, canvasHeight);
   canvas.parent('game-container');
+  setupTouchControls();
 }
 
 // p5.js draw function - loops continuously for animation
