@@ -121,16 +121,23 @@ function mousePressed() {
 }
 
 function setupGameElements() {
-  // Make canvas always fit the available screen in landscape
-  canvasWidth = Math.max(window.innerWidth, window.innerHeight);
-  canvasHeight = Math.min(window.innerWidth, window.innerHeight);
-  if (window.innerWidth < window.innerHeight) {
-    // If in portrait, swap to ensure landscape logic
-    [canvasWidth, canvasHeight] = [canvasHeight, canvasWidth];
+  // Responsive canvas sizing for desktop and mobile
+  const maxW = 900;
+  const maxH = 600;
+  let w = window.innerWidth;
+  let h = window.innerHeight;
+  let aspect = 3 / 2;
+
+  // Prefer landscape, but handle portrait gracefully
+  if (w / h > aspect) {
+    // Window is wider than aspect, limit by height
+    canvasHeight = Math.min(h * 0.98, maxH);
+    canvasWidth = canvasHeight * aspect;
+  } else {
+    // Window is taller than aspect, limit by width
+    canvasWidth = Math.min(w * 0.98, maxW);
+    canvasHeight = canvasWidth / aspect;
   }
-  // Use 98% of available space for padding
-  canvasWidth = Math.floor(canvasWidth * 0.98);
-  canvasHeight = Math.floor(canvasHeight * 0.98);
 
   ball = {
     x: canvasWidth / 2,
