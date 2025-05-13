@@ -69,32 +69,67 @@ function preload() {
 
 function drawCharacterSelection() {
   background('#143025');
-  textSize(32);
+  textSize(windowWidth < 700 ? 22 : 32);
   fill('#FFFFFF');
   textAlign(CENTER, CENTER);
-  text('Player 1: Select Your Character', canvasWidth / 2, canvasHeight * 0.2);
+  text('Player 1: Select Your Character', canvasWidth / 2, canvasHeight * 0.18);
 
+  let isMobile = windowWidth < 700;
+  let iconSize = isMobile ? 60 : 100;
+  let y1 = isMobile ? canvasHeight * 0.32 : canvasHeight * 0.4;
+  let y2 = isMobile ? canvasHeight * 0.68 : canvasHeight * 0.8;
+  let labelOffset = isMobile ? 45 : 70;
   let xOffset = canvasWidth / (characters.length + 1);
+
+  // Player 1 selection row
   for (let i = 0; i < characters.length; i++) {
     let char = characters[i];
     fill(char.color);
-    rect(xOffset * (i + 1) - 50, canvasHeight * 0.4 - 50, 100, 100, 10);
+    rect(xOffset * (i + 1) - iconSize / 2, y1 - iconSize / 2, iconSize, iconSize, 10);
+    if (char.name === 'Carlos') {
+      // Draw a simple dog icon for Carlos
+      drawDogIcon(xOffset * (i + 1), y1, iconSize * 0.6);
+    }
     fill('#FFFFFF');
-    textSize(16);
-    text(char.name, xOffset * (i + 1), canvasHeight * 0.4 + 70);
+    textSize(isMobile ? 13 : 16);
+    text(char.name, xOffset * (i + 1), y1 + labelOffset);
   }
 
   if (selectedCharacters.player1) {
-    text('Player 2: Select Your Character', canvasWidth / 2, canvasHeight * 0.6);
+    text('Player 2: Select Your Character', canvasWidth / 2, canvasHeight * (isMobile ? 0.55 : 0.6));
     for (let i = 0; i < characters.length; i++) {
       let char = characters[i];
       fill(char.color);
-      rect(xOffset * (i + 1) - 50, canvasHeight * 0.8 - 50, 100, 100, 10);
+      rect(xOffset * (i + 1) - iconSize / 2, y2 - iconSize / 2, iconSize, iconSize, 10);
+      if (char.name === 'Carlos') {
+        drawDogIcon(xOffset * (i + 1), y2, iconSize * 0.6);
+      }
       fill('#FFFFFF');
-      textSize(16);
-      text(char.name, xOffset * (i + 1), canvasHeight * 0.8 + 70);
+      textSize(isMobile ? 13 : 16);
+      text(char.name, xOffset * (i + 1), y2 + labelOffset);
     }
   }
+}
+
+// Draw a simple dog icon for Carlos
+function drawDogIcon(x, y, size) {
+  push();
+  translate(x, y);
+  noStroke();
+  fill(255);
+  // Head
+  ellipse(0, 0, size, size * 0.8);
+  // Ears
+  ellipse(-size * 0.35, -size * 0.3, size * 0.3, size * 0.4);
+  ellipse(size * 0.35, -size * 0.3, size * 0.3, size * 0.4);
+  // Eyes
+  fill(0);
+  ellipse(-size * 0.13, -size * 0.07, size * 0.12, size * 0.12);
+  ellipse(size * 0.13, -size * 0.07, size * 0.12, size * 0.12);
+  // Nose
+  fill(80);
+  ellipse(0, size * 0.13, size * 0.13, size * 0.09);
+  pop();
 }
 
 function mousePressed() {
