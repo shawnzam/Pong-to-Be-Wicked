@@ -121,10 +121,16 @@ function mousePressed() {
 }
 
 function setupGameElements() {
-  canvasWidth = windowWidth * 0.8;
-  canvasHeight = windowHeight * 0.56; // 20% less than 0.7
-  if (canvasWidth < 500) canvasWidth = 500;
-  if (canvasHeight < 320) canvasHeight = 320;
+  // Make canvas always fit the available screen in landscape
+  canvasWidth = Math.max(window.innerWidth, window.innerHeight);
+  canvasHeight = Math.min(window.innerWidth, window.innerHeight);
+  if (window.innerWidth < window.innerHeight) {
+    // If in portrait, swap to ensure landscape logic
+    [canvasWidth, canvasHeight] = [canvasHeight, canvasWidth];
+  }
+  // Use 98% of available space for padding
+  canvasWidth = Math.floor(canvasWidth * 0.98);
+  canvasHeight = Math.floor(canvasHeight * 0.98);
 
   ball = {
     x: canvasWidth / 2,
@@ -196,38 +202,51 @@ function calculateBounceAngle(ballY, paddleY, paddleHeight) {
   return bounceAngle;
 }
 
-// Add touch controls for mobile devices
+// Add improved touch controls for both players
 function setupTouchControls() {
   const canvas = document.querySelector('canvas');
-
+  let touchStartX = null;
   let touchStartY = null;
+  let activePlayer = null;
+
   canvas.addEventListener('touchstart', (event) => {
-    touchStartY = event.touches[0].clientY;
-  });
+    if (event.touches.length === 1) {
+      const touch = event.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      // Left half for Player 1, right half for Player 2
+      activePlayer = (touchStartX < canvasWidth / 2) ? 'mal' : 'evie';
+    }
+    event.preventDefault();
+  }, { passive: false });
 
   canvas.addEventListener('touchmove', (event) => {
-    const touchCurrentY = event.touches[0].clientY;
-    const deltaY = touchCurrentY - touchStartY;
-
-    if (deltaY > 0) {
-      // Move paddle down
-      if (playerMal.y < canvasHeight - playerMal.height / 2) {
-        playerMal.y += playerMal.speed;
+    if (event.touches.length === 1) {
+      const touch = event.touches[0];
+      const touchCurrentY = touch.clientY;
+      const deltaY = touchCurrentY - touchStartY;
+      if (activePlayer === 'mal') {
+        if (deltaY > 0 && playerMal.y < canvasHeight - playerMal.height / 2) {
+          playerMal.y += playerMal.speed;
+        } else if (deltaY < 0 && playerMal.y > playerMal.height / 2) {
+          playerMal.y -= playerMal.speed;
+        }
+      } else if (activePlayer === 'evie') {
+        if (deltaY > 0 && playerEvie.y < canvasHeight - playerEvie.height / 2) {
+          playerEvie.y += playerEvie.speed;
+        } else if (deltaY < 0 && playerEvie.y > playerEvie.height / 2) {
+          playerEvie.y -= playerEvie.speed;
+        }
       }
-    } else {
-      // Move paddle up
-      if (playerMal.y > playerMal.height / 2) {
-        playerMal.y -= playerMal.speed;
-      }
+      touchStartY = touchCurrentY;
     }
-
-    touchStartY = touchCurrentY;
-  });
+    event.preventDefault();
+  }, { passive: false });
 }
 
 // p5.js setup function - runs once at the beginning
 function setup() {
-  setupGameElements(); // Ensure canvas dimensions are set
+  setupGameElements();
   let canvas = createCanvas(canvasWidth, canvasHeight);
   canvas.parent('game-container');
   setupTouchControls();
