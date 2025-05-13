@@ -1,0 +1,54 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #0A0E17; /* Dark blue/black like Auradon night sky */
+    text-align: center;
+    padding: 20px;
+    color: white;
+}
+
+h1 {
+    color: #B026FF; /* Magic purple */
+    text-shadow: 0 0 10px #7731A0, 0 0 20px #4169E1;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+#game-container {
+    margin: 0 auto;
+    box-shadow: 0 0 15px rgba(176, 38, 255, 0.6), 0 0 30px rgba(65, 105, 225, 0.4);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.instructions {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 30px;
+}
+
+.player-controls {
+    background-color: rgba(20, 48, 37, 0.7); /* Semi-transparent dark green */
+    border-radius: 10px;
+    padding: 15px;
+    min-width: 150px;
+}
+
+.player-controls:first-child {
+    border: 2px solid #7731A0; /* Mal's purple */
+}
+
+.player-controls:last-child {
+    border: 2px solid #4169E1; /* Evie's blue */
+}
+
+.player-controls h3 {
+    margin-top: 0;
+}
+
+.player-controls:first-child h3 {
+    color: #7731A0; /* Mal's purple */
+}
+
+.player-controls:last-child h3 {
+    color: #4169E1; /* Evie's blue */
+}
