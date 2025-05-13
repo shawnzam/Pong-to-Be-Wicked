@@ -72,41 +72,91 @@ function drawCharacterSelection() {
   textSize(windowWidth < 700 ? 22 : 32);
   fill('#FFFFFF');
   textAlign(CENTER, CENTER);
-  text('Player 1: Select Your Character', canvasWidth / 2, canvasHeight * 0.18);
-
   let isMobile = windowWidth < 700;
   let iconSize = isMobile ? 60 : 100;
-  let y1 = isMobile ? canvasHeight * 0.32 : canvasHeight * 0.4;
-  let y2 = isMobile ? canvasHeight * 0.68 : canvasHeight * 0.8;
   let labelOffset = isMobile ? 45 : 70;
   let xOffset = canvasWidth / (characters.length + 1);
 
-  // Player 1 selection row
-  for (let i = 0; i < characters.length; i++) {
-    let char = characters[i];
-    fill(char.color);
-    rect(xOffset * (i + 1) - iconSize / 2, y1 - iconSize / 2, iconSize, iconSize, 10);
-    if (char.name === 'Carlos') {
-      // Draw a simple dog icon for Carlos
-      drawDogIcon(xOffset * (i + 1), y1, iconSize * 0.6);
-    }
-    fill('#FFFFFF');
-    textSize(isMobile ? 13 : 16);
-    text(char.name, xOffset * (i + 1), y1 + labelOffset);
-  }
-
-  if (selectedCharacters.player1) {
-    text('Player 2: Select Your Character', canvasWidth / 2, canvasHeight * (isMobile ? 0.55 : 0.6));
-    for (let i = 0; i < characters.length; i++) {
-      let char = characters[i];
-      fill(char.color);
-      rect(xOffset * (i + 1) - iconSize / 2, y2 - iconSize / 2, iconSize, iconSize, 10);
-      if (char.name === 'Carlos') {
-        drawDogIcon(xOffset * (i + 1), y2, iconSize * 0.6);
+  if (!selectedCharacters.player1) {
+    text('Player 1: Select Your Character', canvasWidth / 2, canvasHeight * 0.18);
+    // On mobile, use a grid for character icons
+    if (isMobile) {
+      let cols = 3;
+      let rows = Math.ceil(characters.length / cols);
+      let gridW = canvasWidth * 0.9;
+      let gridH = canvasHeight * 0.5;
+      let cellW = gridW / cols;
+      let cellH = gridH / rows;
+      let startX = (canvasWidth - gridW) / 2;
+      let startY = canvasHeight * 0.28;
+      for (let i = 0; i < characters.length; i++) {
+        let col = i % cols;
+        let row = Math.floor(i / cols);
+        let x = startX + col * cellW + cellW / 2;
+        let y = startY + row * cellH + cellH / 2;
+        let char = characters[i];
+        fill(char.color);
+        rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
+        if (char.name === 'Carlos') {
+          drawDogIcon(x, y, iconSize * 0.6);
+        }
+        fill('#FFFFFF');
+        textSize(13);
+        text(char.name, x, y + labelOffset * 0.6);
       }
-      fill('#FFFFFF');
-      textSize(isMobile ? 13 : 16);
-      text(char.name, xOffset * (i + 1), y2 + labelOffset);
+    } else {
+      // Desktop: single row
+      for (let i = 0; i < characters.length; i++) {
+        let char = characters[i];
+        fill(char.color);
+        rect(xOffset * (i + 1) - iconSize / 2, canvasHeight * 0.4 - iconSize / 2, iconSize, iconSize, 10);
+        if (char.name === 'Carlos') {
+          drawDogIcon(xOffset * (i + 1), canvasHeight * 0.4, iconSize * 0.6);
+        }
+        fill('#FFFFFF');
+        textSize(16);
+        text(char.name, xOffset * (i + 1), canvasHeight * 0.4 + labelOffset);
+      }
+    }
+  } else {
+    text('Player 2: Select Your Character', canvasWidth / 2, canvasHeight * (isMobile ? 0.18 : 0.6));
+    if (isMobile) {
+      let cols = 3;
+      let rows = Math.ceil(characters.length / cols);
+      let gridW = canvasWidth * 0.9;
+      let gridH = canvasHeight * 0.5;
+      let cellW = gridW / cols;
+      let cellH = gridH / rows;
+      let startX = (canvasWidth - gridW) / 2;
+      let startY = canvasHeight * 0.28;
+      for (let i = 0; i < characters.length; i++) {
+        let col = i % cols;
+        let row = Math.floor(i / cols);
+        let x = startX + col * cellW + cellW / 2;
+        let y = startY + row * cellH + cellH / 2;
+        let char = characters[i];
+        fill(char.color);
+        rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
+        if (char.name === 'Carlos') {
+          drawDogIcon(x, y, iconSize * 0.6);
+        }
+        fill('#FFFFFF');
+        textSize(13);
+        text(char.name, x, y + labelOffset * 0.6);
+      }
+    } else {
+      // Desktop: single row
+      for (let i = 0; i < characters.length; i++) {
+        let char = characters[i];
+        fill(char.color);
+        rect(xOffset * (i + 1) - iconSize / 2, canvasHeight * 0.8 - iconSize / 2, iconSize, iconSize, 10);
+        if (char.name === 'Carlos') {
+          drawDogIcon(xOffset * (i + 1), canvasHeight * 0.8, iconSize * 0.6);
+        }
+        fill('#FFFFFF');
+        textSize(16);
+        text(char.name, xOffset * (i + 1), canvasHeight * 0.8 + labelOffset);
+      }
     }
   }
 }
