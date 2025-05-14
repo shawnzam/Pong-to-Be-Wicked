@@ -8,8 +8,12 @@ let gameOver = false;
 let winner = '';
 let fireworks = [];
 
+// Add a mode selection screen
+let modeSelection = true;
+let onePlayerMode = false;
+
 // Add a character selection screen
-let characterSelection = true;
+let characterSelection = false;
 let characters = [
   { name: 'Mal', color: '#7731A0' },
   { name: 'Evie', color: '#4169E1' },
@@ -184,6 +188,34 @@ function drawDogIcon(x, y, size) {
 }
 
 function mousePressed() {
+  if (modeSelection) {
+    let btnW = canvasWidth * 0.5;
+    let btnH = canvasHeight * 0.12;
+    let btnY1 = canvasHeight * 0.38;
+    let btnY2 = canvasHeight * 0.55;
+    if (
+      mouseX > (canvasWidth - btnW) / 2 && mouseX < (canvasWidth + btnW) / 2 &&
+      mouseY > btnY1 && mouseY < btnY1 + btnH
+    ) {
+      onePlayerMode = true;
+      modeSelection = false;
+      characterSelection = true;
+      selectedCharacters = { player1: null, player2: null };
+      return;
+    }
+    if (
+      mouseX > (canvasWidth - btnW) / 2 && mouseX < (canvasWidth + btnW) / 2 &&
+      mouseY > btnY2 && mouseY < btnY2 + btnH
+    ) {
+      onePlayerMode = false;
+      modeSelection = false;
+      characterSelection = true;
+      selectedCharacters = { player1: null, player2: null };
+      return;
+    }
+    return;
+  }
+
   if (characterSelection) {
     let isMobile = windowWidth < 700;
     if (isMobile) {
@@ -382,6 +414,28 @@ function setup() {
 
 // p5.js draw function - loops continuously for animation
 function draw() {
+  if (modeSelection) {
+    background('#143025');
+    textSize(windowWidth < 700 ? 28 : 40);
+    fill('#FFFFFF');
+    textAlign(CENTER, CENTER);
+    text('Select Game Mode', canvasWidth / 2, canvasHeight * 0.22);
+    textSize(windowWidth < 700 ? 22 : 32);
+    let btnW = canvasWidth * 0.5;
+    let btnH = canvasHeight * 0.12;
+    let btnY1 = canvasHeight * 0.38;
+    let btnY2 = canvasHeight * 0.55;
+    fill('#4169E1');
+    rect((canvasWidth - btnW) / 2, btnY1, btnW, btnH, 18);
+    fill('#FFFFFF');
+    text('1 Player', canvasWidth / 2, btnY1 + btnH / 2);
+    fill('#7731A0');
+    rect((canvasWidth - btnW) / 2, btnY2, btnW, btnH, 18);
+    fill('#FFFFFF');
+    text('2 Player', canvasWidth / 2, btnY2 + btnH / 2);
+    return;
+  }
+
   if (characterSelection) {
     drawCharacterSelection();
     return;
@@ -501,12 +555,27 @@ function draw() {
   }
   
   // Move Player 2's paddle with UP and DOWN arrow keys
-  if (keyIsDown(UP_ARROW) && playerEvie.y > playerEvie.height / 2) {
+  if (!onePlayerMode && keyIsDown(UP_ARROW) && playerEvie.y > playerEvie.height / 2) {
     playerEvie.y -= playerEvie.speed;
   }
   
-  if (keyIsDown(DOWN_ARROW) && playerEvie.y < canvasHeight - playerEvie.height / 2) {
+  if (!onePlayerMode && keyIsDown(DOWN_ARROW) && playerEvie.y < canvasHeight - playerEvie.height / 2) {
     playerEvie.y += playerEvie.speed;
+  }
+
+  // AI for Player 2 in 1 Player mode
+  if (onePlayerMode && !gameOver) {
+    // Make AI easier: slower speed and add a small reaction delay
+    let aiTarget = ball.y;
+    let aiSpeed = playerEvie.speed * 0.55; // slower AI
+    let aiDelay = 32; // only move if ball is far enough away
+    if (Math.abs(playerEvie.y - aiTarget) > aiDelay) {
+      if (playerEvie.y < aiTarget && playerEvie.y < canvasHeight - playerEvie.height / 2) {
+        playerEvie.y += aiSpeed;
+      } else if (playerEvie.y > aiTarget && playerEvie.y > playerEvie.height / 2) {
+        playerEvie.y -= aiSpeed;
+      }
+    }
   }
   
   // Check for ball hitting Player 1's paddle (left)
@@ -589,7 +658,9 @@ function keyPressed() {
     playerEvie.score = 0;
     gameOver = false;
     winner = '';
-    characterSelection = true;
+    // After game over, return to mode selection
+    modeSelection = true;
+    characterSelection = false;
     selectedCharacters = { player1: null, player2: null };
   }
 }
