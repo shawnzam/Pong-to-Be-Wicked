@@ -73,53 +73,16 @@ function drawCharacterSelection() {
   fill('#FFFFFF');
   textAlign(CENTER, CENTER);
   let isMobile = windowWidth < 700;
-  let iconSize = isMobile ? 48 : 100; // smaller for mobile
-  let labelOffset = isMobile ? 32 : 70; // smaller for mobile
+  let iconSize = isMobile ? 48 : 100;
+  let labelOffset = isMobile ? 32 : 70;
   let xOffset = canvasWidth / (characters.length + 1);
 
+  // Always keep selection grid at the top for both players
+  let selectionTitleY = canvasHeight * 0.08;
+  let gridStartY = canvasHeight * 0.15;
+
   if (!selectedCharacters.player1) {
-    text('Player 1: Tap your favorite Descendant!', canvasWidth / 2, canvasHeight * 0.13);
-    // On mobile, use a grid for character icons
-    if (isMobile) {
-      let cols = 3;
-      let rows = Math.ceil(characters.length / cols);
-      let gridW = canvasWidth * 0.92;
-      let gridH = canvasHeight * 0.38; // more compact grid
-      let cellW = gridW / cols;
-      let cellH = gridH / rows;
-      let startX = (canvasWidth - gridW) / 2;
-      let startY = canvasHeight * 0.22;
-      for (let i = 0; i < characters.length; i++) {
-        let col = i % cols;
-        let row = Math.floor(i / cols);
-        let x = startX + col * cellW + cellW / 2;
-        let y = startY + row * cellH + cellH / 2;
-        let char = characters[i];
-        fill(char.color);
-        rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
-        if (char.name === 'Carlos') {
-          drawDogIcon(x, y, iconSize * 0.6);
-        }
-        fill('#FFFFFF');
-        textSize(11);
-        text(char.name, x, y + labelOffset * 0.6);
-      }
-    } else {
-      // Desktop: single row
-      for (let i = 0; i < characters.length; i++) {
-        let char = characters[i];
-        fill(char.color);
-        rect(xOffset * (i + 1) - iconSize / 2, canvasHeight * 0.4 - iconSize / 2, iconSize, iconSize, 10);
-        if (char.name === 'Carlos') {
-          drawDogIcon(xOffset * (i + 1), canvasHeight * 0.4, iconSize * 0.6);
-        }
-        fill('#FFFFFF');
-        textSize(16);
-        text(char.name, xOffset * (i + 1), canvasHeight * 0.4 + labelOffset);
-      }
-    }
-  } else {
-    text('Player 2: Tap your favorite Descendant!', canvasWidth / 2, canvasHeight * (isMobile ? 0.13 : 0.6));
+    text('Player 1: Tap your favorite Descendant!', canvasWidth / 2, selectionTitleY);
     if (isMobile) {
       let cols = 3;
       let rows = Math.ceil(characters.length / cols);
@@ -128,7 +91,7 @@ function drawCharacterSelection() {
       let cellW = gridW / cols;
       let cellH = gridH / rows;
       let startX = (canvasWidth - gridW) / 2;
-      let startY = canvasHeight * 0.22;
+      let startY = gridStartY;
       for (let i = 0; i < characters.length; i++) {
         let col = i % cols;
         let row = Math.floor(i / cols);
@@ -145,17 +108,55 @@ function drawCharacterSelection() {
         text(char.name, x, y + labelOffset * 0.6);
       }
     } else {
-      // Desktop: single row
       for (let i = 0; i < characters.length; i++) {
         let char = characters[i];
         fill(char.color);
-        rect(xOffset * (i + 1) - iconSize / 2, canvasHeight * 0.8 - iconSize / 2, iconSize, iconSize, 10);
+        rect(xOffset * (i + 1) - iconSize / 2, gridStartY + iconSize / 2 - iconSize / 2, iconSize, iconSize, 10);
         if (char.name === 'Carlos') {
-          drawDogIcon(xOffset * (i + 1), canvasHeight * 0.8, iconSize * 0.6);
+          drawDogIcon(xOffset * (i + 1), gridStartY + iconSize / 2, iconSize * 0.6);
         }
         fill('#FFFFFF');
         textSize(16);
-        text(char.name, xOffset * (i + 1), canvasHeight * 0.8 + labelOffset);
+        text(char.name, xOffset * (i + 1), gridStartY + iconSize / 2 + labelOffset);
+      }
+    }
+  } else {
+    text('Player 2: Tap your favorite Descendant!', canvasWidth / 2, selectionTitleY);
+    if (isMobile) {
+      let cols = 3;
+      let rows = Math.ceil(characters.length / cols);
+      let gridW = canvasWidth * 0.92;
+      let gridH = canvasHeight * 0.38;
+      let cellW = gridW / cols;
+      let cellH = gridH / rows;
+      let startX = (canvasWidth - gridW) / 2;
+      let startY = gridStartY;
+      for (let i = 0; i < characters.length; i++) {
+        let col = i % cols;
+        let row = Math.floor(i / cols);
+        let x = startX + col * cellW + cellW / 2;
+        let y = startY + row * cellH + cellH / 2;
+        let char = characters[i];
+        fill(char.color);
+        rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
+        if (char.name === 'Carlos') {
+          drawDogIcon(x, y, iconSize * 0.6);
+        }
+        fill('#FFFFFF');
+        textSize(11);
+        text(char.name, x, y + labelOffset * 0.6);
+      }
+    } else {
+      for (let i = 0; i < characters.length; i++) {
+        let char = characters[i];
+        fill(char.color);
+        rect(xOffset * (i + 1) - iconSize / 2, gridStartY + iconSize / 2 - iconSize / 2, iconSize, iconSize, 10);
+        if (char.name === 'Carlos') {
+          drawDogIcon(xOffset * (i + 1), gridStartY + iconSize / 2, iconSize * 0.6);
+        }
+        fill('#FFFFFF');
+        textSize(16);
+        text(char.name, xOffset * (i + 1), gridStartY + iconSize / 2 + labelOffset);
       }
     }
   }
@@ -215,10 +216,11 @@ function mousePressed() {
         }
       }
     } else {
-      // Desktop: single row
+      // Desktop: single row at the top
       let xOffset = canvasWidth / (characters.length + 1);
       let iconSize = 100;
-      let y = selectedCharacters.player1 ? canvasHeight * 0.8 - iconSize / 2 : canvasHeight * 0.4 - iconSize / 2;
+      let gridStartY = canvasHeight * 0.15;
+      let y = gridStartY + iconSize / 2 - iconSize / 2;
       for (let i = 0; i < characters.length; i++) {
         let x = xOffset * (i + 1) - iconSize / 2;
         if (
@@ -417,10 +419,18 @@ function draw() {
   
   // Draw the scoreboard
   textSize(24);
-  fill(playerMal.color); // Player 1's color
-  text(selectedCharacters.player1 ? selectedCharacters.player1.name + ': ' + playerMal.score : '', canvasWidth * 0.15, canvasHeight * 0.08);
-  fill(playerEvie.color); // Player 2's color
-  text(selectedCharacters.player2 ? selectedCharacters.player2.name + ': ' + playerEvie.score : '', canvasWidth * 0.6, canvasHeight * 0.08);
+  fill(playerMal.color);
+  text(selectedCharacters.player1.name + ': ' + playerMal.score, canvasWidth * 0.15, canvasHeight * 0.08);
+  fill(playerEvie.color);
+  text(selectedCharacters.player2.name + ': ' + playerEvie.score, canvasWidth * 0.6, canvasHeight * 0.08);
+
+  // Draw player instructions at the bottom
+  textSize(16);
+  fill('#FFFFFF');
+  textAlign(LEFT, BOTTOM);
+  text(selectedCharacters.player1.name + '\nW key: Move Up\nS key: Move Down', 16, canvasHeight - 60);
+  textAlign(RIGHT, BOTTOM);
+  text(selectedCharacters.player2.name + '\nUP: Move Up\nDOWN: Move Down', canvasWidth - 16, canvasHeight - 60);
   
   // Draw the middle line
   stroke(255, 255, 255, 100);
