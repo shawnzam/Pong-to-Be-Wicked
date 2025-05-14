@@ -1,7 +1,7 @@
 // Game variables
 let canvasWidth = 800; // Default width
 let canvasHeight = 450; // Default height
-let ball, playerMal, playerEvie;
+let ball, players;
 let paddleSound;
 let scoreSound;
 let gameOver = false;
@@ -304,43 +304,44 @@ function setupGameElements() {
   let paddleHeight = canvasHeight * 0.27;
   let paddleSpeed = canvasHeight * 0.012;
 
-  playerMal = {
-    x: paddleWidth + 10,
-    y: canvasHeight / 2,
-    width: paddleWidth,
-    height: paddleHeight,
-    speed: paddleSpeed,
-    color: selectedCharacters.player1 ? selectedCharacters.player1.color : '#FFFFFF',
-    score: 0
-  };
-
-  playerEvie = {
-    x: canvasWidth - paddleWidth - 10,
-    y: canvasHeight / 2,
-    width: paddleWidth,
-    height: paddleHeight,
-    speed: paddleSpeed,
-    color: selectedCharacters.player2 ? selectedCharacters.player2.color : '#FFFFFF',
-    score: 0
-  };
+  players = [
+    {
+      x: paddleWidth + 10,
+      y: canvasHeight / 2,
+      width: paddleWidth,
+      height: paddleHeight,
+      speed: paddleSpeed,
+      color: selectedCharacters.player1 ? selectedCharacters.player1.color : '#FFFFFF',
+      score: 0
+    },
+    {
+      x: canvasWidth - paddleWidth - 10,
+      y: canvasHeight / 2,
+      width: paddleWidth,
+      height: paddleHeight,
+      speed: paddleSpeed,
+      color: selectedCharacters.player2 ? selectedCharacters.player2.color : '#FFFFFF',
+      score: 0
+    }
+  ];
 }
 
 // Modify ball color based on its position
 function updateBallColor() {
   if (ball.x < canvasWidth / 2) {
-    ball.color = playerMal.color; // Player 1's color
+    ball.color = players[0].color; // Player 1's color
   } else {
-    ball.color = playerEvie.color; // Player 2's color
+    ball.color = players[1].color; // Player 2's color
   }
 }
 
 // Adjust paddle size after each point
 function adjustPaddleSize() {
   let minHeight = canvasHeight * 0.135; // 50% of initial height
-  let decrement = (playerMal.height - minHeight) / 5; // Decrease size over 5 points
+  let decrement = (players[0].height - minHeight) / 5; // Decrease size over 5 points
 
-  playerMal.height = Math.max(minHeight, playerMal.height - decrement);
-  playerEvie.height = Math.max(minHeight, playerEvie.height - decrement);
+  players[0].height = Math.max(minHeight, players[0].height - decrement);
+  players[1].height = Math.max(minHeight, players[1].height - decrement);
 }
 
 // Slow down ball after a point is scored
@@ -374,7 +375,7 @@ function setupTouchControls() {
       touchStartX = touch.clientX - rect.left;
       touchStartY = touch.clientY - rect.top;
       // Left half for Player 1, right half for Player 2
-      activePlayer = (touchStartX < canvasWidth / 2) ? 'mal' : 'evie';
+      activePlayer = (touchStartX < canvasWidth / 2) ? 0 : 1;
     }
     event.preventDefault();
   }, { passive: false });
@@ -385,17 +386,17 @@ function setupTouchControls() {
       const rect = document.querySelector('canvas').getBoundingClientRect();
       const touchCurrentY = touch.clientY - rect.top;
       const deltaY = touchCurrentY - touchStartY;
-      if (activePlayer === 'mal') {
-        if (deltaY > 0 && playerMal.y < canvasHeight - playerMal.height / 2) {
-          playerMal.y += playerMal.speed;
-        } else if (deltaY < 0 && playerMal.y > playerMal.height / 2) {
-          playerMal.y -= playerMal.speed;
+      if (activePlayer === 0) {
+        if (deltaY > 0 && players[0].y < canvasHeight - players[0].height / 2) {
+          players[0].y += players[0].speed;
+        } else if (deltaY < 0 && players[0].y > players[0].height / 2) {
+          players[0].y -= players[0].speed;
         }
-      } else if (activePlayer === 'evie') {
-        if (deltaY > 0 && playerEvie.y < canvasHeight - playerEvie.height / 2) {
-          playerEvie.y += playerEvie.speed;
-        } else if (deltaY < 0 && playerEvie.y > playerEvie.height / 2) {
-          playerEvie.y -= playerEvie.speed;
+      } else if (activePlayer === 1) {
+        if (deltaY > 0 && players[1].y < canvasHeight - players[1].height / 2) {
+          players[1].y += players[1].speed;
+        } else if (deltaY < 0 && players[1].y > players[1].height / 2) {
+          players[1].y -= players[1].speed;
         }
       }
       touchStartY = touchCurrentY;
@@ -454,7 +455,7 @@ function draw() {
     // Trigger fireworks
     if (fireworks.length === 0) {
       for (let i = 0; i < 5; i++) {
-        fireworks.push(new Firework(random(canvasWidth), random(canvasHeight / 2), color(winner === selectedCharacters.player1.name ? playerMal.color : playerEvie.color)));
+        fireworks.push(new Firework(random(canvasWidth), random(canvasHeight / 2), color(winner === selectedCharacters.player1.name ? players[0].color : players[1].color)));
       }
     }
 
@@ -473,10 +474,10 @@ function draw() {
   
   // Draw the scoreboard
   textSize(24);
-  fill(playerMal.color);
-  text(selectedCharacters.player1.name + ': ' + playerMal.score, canvasWidth * 0.15, canvasHeight * 0.08);
-  fill(playerEvie.color);
-  text(selectedCharacters.player2.name + ': ' + playerEvie.score, canvasWidth * 0.6, canvasHeight * 0.08);
+  fill(players[0].color);
+  text(selectedCharacters.player1.name + ': ' + players[0].score, canvasWidth * 0.15, canvasHeight * 0.08);
+  fill(players[1].color);
+  text(selectedCharacters.player2.name + ': ' + players[1].score, canvasWidth * 0.6, canvasHeight * 0.08);
 
   // Draw player instructions at the bottom
   textSize(16);
@@ -513,11 +514,11 @@ function draw() {
   // Check if player scored
   if (ball.x < 0) {
     // Player 2 scores
-    playerEvie.score += 1;
+    players[1].score += 1;
     playScoreSound();
     adjustPaddleSize();
     slowDownBall();
-    if (playerEvie.score >= 5) {
+    if (players[1].score >= 5) {
       gameOver = true;
       winner = selectedCharacters.player2.name;
     } else {
@@ -525,11 +526,11 @@ function draw() {
     }
   } else if (ball.x > canvasWidth) {
     // Player 1 scores
-    playerMal.score += 1;
+    players[0].score += 1;
     playScoreSound();
     adjustPaddleSize();
     slowDownBall();
-    if (playerMal.score >= 5) {
+    if (players[0].score >= 5) {
       gameOver = true;
       winner = selectedCharacters.player1.name;
     } else {
@@ -538,79 +539,77 @@ function draw() {
   }
   
   // Draw Player 1's paddle (left player)
-  fill(playerMal.color);
-  rect(playerMal.x, playerMal.y - playerMal.height / 2, playerMal.width, playerMal.height, 10);
+  fill(players[0].color);
+  rect(players[0].x, players[0].y - players[0].height / 2, players[0].width, players[0].height, 10);
   
   // Draw Player 2's paddle (right player)
-  fill(playerEvie.color);
-  rect(playerEvie.x - playerEvie.width, playerEvie.y - playerEvie.height / 2, playerEvie.width, playerEvie.height, 10);
+  fill(players[1].color);
+  rect(players[1].x - players[1].width, players[1].y - players[1].height / 2, players[1].width, players[1].height, 10);
   
   // Move Player 1's paddle with W and S keys
-  if (keyIsDown(87) && playerMal.y > playerMal.height / 2) { // W key
-    playerMal.y -= playerMal.speed;
+  if (keyIsDown(87) && players[0].y > players[0].height / 2) { // W key
+    players[0].y -= players[0].speed;
   }
-  
-  if (keyIsDown(83) && playerMal.y < canvasHeight - playerMal.height / 2) { // S key
-    playerMal.y += playerMal.speed;
+  if (keyIsDown(83) && players[0].y < canvasHeight - players[0].height / 2) { // S key
+    players[0].y += players[0].speed;
   }
-  
-  // Move Player 2's paddle with UP and DOWN arrow keys
-  if (!onePlayerMode && keyIsDown(UP_ARROW) && playerEvie.y > playerEvie.height / 2) {
-    playerEvie.y -= playerEvie.speed;
+
+  // Move Player 2's paddle with UP and DOWN arrow keys (only if NOT onePlayerMode)
+  if (!onePlayerMode && keyIsDown(UP_ARROW) && players[1].y > players[1].height / 2) {
+    players[1].y -= players[1].speed;
   }
-  
-  if (!onePlayerMode && keyIsDown(DOWN_ARROW) && playerEvie.y < canvasHeight - playerEvie.height / 2) {
-    playerEvie.y += playerEvie.speed;
+  if (!onePlayerMode && keyIsDown(DOWN_ARROW) && players[1].y < canvasHeight - players[1].height / 2) {
+    players[1].y += players[1].speed;
   }
 
   // AI for Player 2 in 1 Player mode
   if (onePlayerMode && !gameOver) {
     // Make AI easier: slower speed and add a small reaction delay
     let aiTarget = ball.y;
-    let aiSpeed = playerEvie.speed * 0.55; // slower AI
+    let aiSpeed = players[1].speed * 0.55; // slower AI
     let aiDelay = 32; // only move if ball is far enough away
-    if (Math.abs(playerEvie.y - aiTarget) > aiDelay) {
-      if (playerEvie.y < aiTarget && playerEvie.y < canvasHeight - playerEvie.height / 2) {
-        playerEvie.y += aiSpeed;
-      } else if (playerEvie.y > aiTarget && playerEvie.y > playerEvie.height / 2) {
-        playerEvie.y -= aiSpeed;
+    if (Math.abs(players[1].y - aiTarget) > aiDelay) {
+      if (players[1].y < aiTarget && players[1].y < canvasHeight - players[1].height / 2) {
+        players[1].y += aiSpeed;
+      } else if (players[1].y > aiTarget && players[1].y > players[1].height / 2) {
+        players[1].y -= aiSpeed;
       }
     }
   }
   
   // Check for ball hitting Player 1's paddle (left)
-  if (ball.x - ball.size / 2 <= playerMal.x + playerMal.width && 
-      ball.y >= playerMal.y - playerMal.height / 2 && 
-      ball.y <= playerMal.y + playerMal.height / 2 &&
-      ball.x > playerMal.x) {
+  if (ball.x - ball.size / 2 <= players[0].x + players[0].width && 
+      ball.y >= players[0].y - players[0].height / 2 && 
+      ball.y <= players[0].y + players[0].height / 2 &&
+      ball.x > players[0].x) {
     
     ball.speedX = Math.abs(ball.speedX) + canvasWidth * 0.0005; // Make it go right and slightly faster
-    ball.x = playerMal.x + playerMal.width + ball.size / 2; // Prevent sticking
+    ball.x = players[0].x + players[0].width + ball.size / 2; // Prevent sticking
     
     // Change the angle based on where it hit the paddle
-    let angle = calculateBounceAngle(ball.y, playerMal.y, playerMal.height);
+    let angle = calculateBounceAngle(ball.y, players[0].y, players[0].height);
     ball.speedY = angle;
     
     // Add magical effect
-    showMagicEffect(ball.x, ball.y, playerMal.color);
+    showMagicEffect(ball.x, ball.y, players[0].color);
     playBounceSound();
   }
   
   // Check for ball hitting Player 2's paddle (right)
-  if (ball.x + ball.size / 2 >= playerEvie.x - playerEvie.width && 
-      ball.y >= playerEvie.y - playerEvie.height / 2 && 
-      ball.y <= playerEvie.y + playerEvie.height / 2 &&
-      ball.x < playerEvie.x) {
+  if (ball.x + ball.size / 2 >= players[1].x - players[1].width && 
+      ball.y >= players[1].y - players[1].height / 2 && 
+      ball.y <= players[1].y + players[1].height / 2 &&
+      ball.x < players[1].x) {
     
     ball.speedX = -Math.abs(ball.speedX) - canvasWidth * 0.0005; // Make it go left and slightly faster
-    ball.x = playerEvie.x - playerEvie.width - ball.size / 2; // Prevent sticking
+    ball.x = players[1].x - players[1].width - ball.size / 2; // Prevent sticking
     
     // Change the angle based on where it hit the paddle
-    let angle = calculateBounceAngle(ball.y, playerEvie.y, playerEvie.height);
+    let angle = calculateBounceAngle(ball.y, players[1].y, players[1].height);
     ball.speedY = angle;
     
     // Add magical effect
-    showMagicEffect(ball.x, ball.y, playerEvie.color);
+    showMagicEffect(ball.x, ball.y, players[1].color);
     playBounceSound();
   }
 
@@ -654,8 +653,8 @@ function playScoreSound() {
 
 function keyPressed() {
   if (gameOver && (key === 'z' || key === 'Z')) {
-    playerMal.score = 0;
-    playerEvie.score = 0;
+    players[0].score = 0;
+    players[1].score = 0;
     gameOver = false;
     winner = '';
     // After game over, return to mode selection
