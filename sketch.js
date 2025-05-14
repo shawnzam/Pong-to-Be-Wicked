@@ -184,21 +184,54 @@ function drawDogIcon(x, y, size) {
 
 function mousePressed() {
   if (characterSelection) {
-    let xOffset = canvasWidth / (characters.length + 1);
-    for (let i = 0; i < characters.length; i++) {
-      let char = characters[i];
-      let x = xOffset * (i + 1) - 50;
-      let y = selectedCharacters.player1 ? canvasHeight * 0.8 - 50 : canvasHeight * 0.4 - 50;
-      if (
-        mouseX > x && mouseX < x + 100 &&
-        mouseY > y && mouseY < y + 100
-      ) {
-        if (!selectedCharacters.player1) {
-          selectedCharacters.player1 = char;
-        } else if (!selectedCharacters.player2) {
-          selectedCharacters.player2 = char;
-          characterSelection = false;
-          setupGameElements();
+    let isMobile = windowWidth < 700;
+    if (isMobile) {
+      // Mobile: grid selection
+      let cols = 3;
+      let rows = Math.ceil(characters.length / cols);
+      let gridW = canvasWidth * 0.9;
+      let gridH = canvasHeight * 0.5;
+      let cellW = gridW / cols;
+      let cellH = gridH / rows;
+      let startX = (canvasWidth - gridW) / 2;
+      let startY = canvasHeight * 0.28;
+      let yOffset = !selectedCharacters.player1 ? startY : startY;
+      for (let i = 0; i < characters.length; i++) {
+        let col = i % cols;
+        let row = Math.floor(i / cols);
+        let x = startX + col * cellW + cellW / 2;
+        let y = yOffset + row * cellH + cellH / 2;
+        if (
+          mouseX > x - cellW / 2 && mouseX < x + cellW / 2 &&
+          mouseY > y - cellH / 2 && mouseY < y + cellH / 2
+        ) {
+          if (!selectedCharacters.player1) {
+            selectedCharacters.player1 = characters[i];
+          } else if (!selectedCharacters.player2) {
+            selectedCharacters.player2 = characters[i];
+            characterSelection = false;
+            setupGameElements();
+          }
+        }
+      }
+    } else {
+      // Desktop: single row
+      let xOffset = canvasWidth / (characters.length + 1);
+      let iconSize = 100;
+      let y = selectedCharacters.player1 ? canvasHeight * 0.8 - iconSize / 2 : canvasHeight * 0.4 - iconSize / 2;
+      for (let i = 0; i < characters.length; i++) {
+        let x = xOffset * (i + 1) - iconSize / 2;
+        if (
+          mouseX > x && mouseX < x + iconSize &&
+          mouseY > y && mouseY < y + iconSize
+        ) {
+          if (!selectedCharacters.player1) {
+            selectedCharacters.player1 = characters[i];
+          } else if (!selectedCharacters.player2) {
+            selectedCharacters.player2 = characters[i];
+            characterSelection = false;
+            setupGameElements();
+          }
         }
       }
     }
