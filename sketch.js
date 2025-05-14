@@ -73,22 +73,22 @@ function drawCharacterSelection() {
   fill('#FFFFFF');
   textAlign(CENTER, CENTER);
   let isMobile = windowWidth < 700;
-  let iconSize = isMobile ? 60 : 100;
-  let labelOffset = isMobile ? 45 : 70;
+  let iconSize = isMobile ? 48 : 100; // smaller for mobile
+  let labelOffset = isMobile ? 32 : 70; // smaller for mobile
   let xOffset = canvasWidth / (characters.length + 1);
 
   if (!selectedCharacters.player1) {
-    text('Player 1: Select Your Character', canvasWidth / 2, canvasHeight * 0.18);
+    text('Player 1: Tap your favorite Descendant!', canvasWidth / 2, canvasHeight * 0.13);
     // On mobile, use a grid for character icons
     if (isMobile) {
       let cols = 3;
       let rows = Math.ceil(characters.length / cols);
-      let gridW = canvasWidth * 0.9;
-      let gridH = canvasHeight * 0.5;
+      let gridW = canvasWidth * 0.92;
+      let gridH = canvasHeight * 0.38; // more compact grid
       let cellW = gridW / cols;
       let cellH = gridH / rows;
       let startX = (canvasWidth - gridW) / 2;
-      let startY = canvasHeight * 0.28;
+      let startY = canvasHeight * 0.22;
       for (let i = 0; i < characters.length; i++) {
         let col = i % cols;
         let row = Math.floor(i / cols);
@@ -101,7 +101,7 @@ function drawCharacterSelection() {
           drawDogIcon(x, y, iconSize * 0.6);
         }
         fill('#FFFFFF');
-        textSize(13);
+        textSize(11);
         text(char.name, x, y + labelOffset * 0.6);
       }
     } else {
@@ -119,16 +119,16 @@ function drawCharacterSelection() {
       }
     }
   } else {
-    text('Player 2: Select Your Character', canvasWidth / 2, canvasHeight * (isMobile ? 0.18 : 0.6));
+    text('Player 2: Tap your favorite Descendant!', canvasWidth / 2, canvasHeight * (isMobile ? 0.13 : 0.6));
     if (isMobile) {
       let cols = 3;
       let rows = Math.ceil(characters.length / cols);
-      let gridW = canvasWidth * 0.9;
-      let gridH = canvasHeight * 0.5;
+      let gridW = canvasWidth * 0.92;
+      let gridH = canvasHeight * 0.38;
       let cellW = gridW / cols;
       let cellH = gridH / rows;
       let startX = (canvasWidth - gridW) / 2;
-      let startY = canvasHeight * 0.28;
+      let startY = canvasHeight * 0.22;
       for (let i = 0; i < characters.length; i++) {
         let col = i % cols;
         let row = Math.floor(i / cols);
@@ -141,7 +141,7 @@ function drawCharacterSelection() {
           drawDogIcon(x, y, iconSize * 0.6);
         }
         fill('#FFFFFF');
-        textSize(13);
+        textSize(11);
         text(char.name, x, y + labelOffset * 0.6);
       }
     } else {
@@ -189,13 +189,13 @@ function mousePressed() {
       // Mobile: grid selection
       let cols = 3;
       let rows = Math.ceil(characters.length / cols);
-      let gridW = canvasWidth * 0.9;
-      let gridH = canvasHeight * 0.5;
+      let gridW = canvasWidth * 0.92;
+      let gridH = canvasHeight * 0.38;
       let cellW = gridW / cols;
       let cellH = gridH / rows;
       let startX = (canvasWidth - gridW) / 2;
-      let startY = canvasHeight * 0.28;
-      let yOffset = !selectedCharacters.player1 ? startY : startY;
+      let startY = canvasHeight * 0.22;
+      let yOffset = startY;
       for (let i = 0; i < characters.length; i++) {
         let col = i % cols;
         let row = Math.floor(i / cols);
@@ -418,9 +418,9 @@ function draw() {
   // Draw the scoreboard
   textSize(24);
   fill(playerMal.color); // Player 1's color
-  text(selectedCharacters.player1.name + ': ' + playerMal.score, canvasWidth * 0.15, canvasHeight * 0.08);
+  text(selectedCharacters.player1 ? selectedCharacters.player1.name + ': ' + playerMal.score : '', canvasWidth * 0.15, canvasHeight * 0.08);
   fill(playerEvie.color); // Player 2's color
-  text(selectedCharacters.player2.name + ': ' + playerEvie.score, canvasWidth * 0.6, canvasHeight * 0.08);
+  text(selectedCharacters.player2 ? selectedCharacters.player2.name + ': ' + playerEvie.score : '', canvasWidth * 0.6, canvasHeight * 0.08);
   
   // Draw the middle line
   stroke(255, 255, 255, 100);
