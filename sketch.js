@@ -21,6 +21,12 @@ let fireworks = [];
 let modeSelection = true;
 let onePlayerMode = false;
 let characterSelection = false;
+let selectionTransition = false;
+let transitionTimer = 0;
+let transitionDuration = 3; // 3 second transition
+let gameStartCountdown = false;
+let countdownTimer = 0;
+let countdownDuration = 3; // 3 second countdown
 /**
  * List of available characters
  * @type {Array<{name: string, color: string}>}
@@ -372,9 +378,21 @@ function drawCharacterSelection() {
 }
 
 /**
- * Handle mouse presses for mode/character selection
+ * Handle mouse presses for mode/character selection and transition skipping
  */
 function mousePressed() {
+  // Skip character selection transition on tap/click
+  if (selectionTransition) {
+    selectionTransition = false;
+    return;
+  }
+  
+  // Skip game start countdown on tap/click
+  if (gameStartCountdown) {
+    gameStartCountdown = false;
+    return;
+  }
+
   if (modeSelection) {
     let btnW = canvasWidth * 0.5;
     let btnH = canvasHeight * 0.12;
@@ -427,10 +445,25 @@ function mousePressed() {
         ) {
           if (!selectedCharacters.player1) {
             selectedCharacters.player1 = characters[i];
+            // Start transition between character selections
+            selectionTransition = true;
+            transitionTimer = millis();
+            // Play sound to indicate successful selection
+            if (scoreSound && scoreSound.isLoaded()) {
+              scoreSound.play();
+            }
           } else if (!selectedCharacters.player2) {
             selectedCharacters.player2 = characters[i];
             characterSelection = false;
+            selectionTransition = false;
+            // Setup game elements but start countdown before actual gameplay
+            gameStartCountdown = true;
+            countdownTimer = millis();
             setupGameElements();
+            // Play sound for player 2 selection
+            if (scoreSound && scoreSound.isLoaded()) {
+              scoreSound.play();
+            }
           }
         }
       }
@@ -448,10 +481,25 @@ function mousePressed() {
         ) {
           if (!selectedCharacters.player1) {
             selectedCharacters.player1 = characters[i];
+            // Start transition between character selections
+            selectionTransition = true;
+            transitionTimer = millis();
+            // Play sound to indicate successful selection
+            if (scoreSound && scoreSound.isLoaded()) {
+              scoreSound.play();
+            }
           } else if (!selectedCharacters.player2) {
             selectedCharacters.player2 = characters[i];
             characterSelection = false;
+            selectionTransition = false;
+            // Setup game elements but start countdown before actual gameplay
+            gameStartCountdown = true;
+            countdownTimer = millis();
             setupGameElements();
+            // Play sound for player 2 selection
+            if (scoreSound && scoreSound.isLoaded()) {
+              scoreSound.play();
+            }
           }
         }
       }
@@ -650,7 +698,152 @@ function draw() {
     return;
   }
 
+  if (gameStartCountdown) {
+    // Show countdown before game starts
+    background('#143025');
+    textSize(36);
+    fill('#FFFFFF');
+    textAlign(CENTER, CENTER);
+    
+    // Calculate remaining time
+    let elapsedSeconds = (millis() - countdownTimer) / 1000;
+    let remainingTime = Math.ceil(countdownDuration - elapsedSeconds);
+    
+    // Show VS screen with both players
+    text(selectedCharacters.player1.name + ' vs ' + selectedCharacters.player2.name, canvasWidth / 2, canvasHeight * 0.2);
+    
+    // Draw both character icons
+    let iconSize = 90;
+    let spacing = canvasWidth * 0.25;
+    
+    // Player 1 character
+    fill(selectedCharacters.player1.color);
+    rect(canvasWidth/2 - spacing - iconSize/2, canvasHeight * 0.4 - iconSize/2, iconSize, iconSize, 15);
+    drawCharacterIcon(selectedCharacters.player1.name, canvasWidth/2 - spacing, canvasHeight * 0.4, iconSize * 0.8);
+    
+    // VS text in the middle
+    textSize(48);
+    fill('#FFD700'); // Gold color
+    text('VS', canvasWidth/2, canvasHeight * 0.4);
+    
+    // Player 2 character
+    fill(selectedCharacters.player2.color);
+    rect(canvasWidth/2 + spacing - iconSize/2, canvasHeight * 0.4 - iconSize/2, iconSize, iconSize, 15);
+    drawCharacterIcon(selectedCharacters.player2.name, canvasWidth/2 + spacing, canvasHeight * 0.4, iconSize * 0.8);
+    
+    // Show countdown number
+    textSize(100);
+    fill('#FFD700'); // Gold color
+    text(remainingTime, canvasWidth / 2, canvasHeight * 0.7);
+    
+    // Game instructions
+    textSize(24);
+    fill('#FFFFFF');
+    text('Get Ready!', canvasWidth / 2, canvasHeight * 0.85);
+    
+    // Create firework effects
+    if (random() < 0.2) {
+      // Random position across the screen
+      let x = random(canvasWidth * 0.2, canvasWidth * 0.8);
+      let y = random(canvasHeight * 0.2, canvasHeight * 0.6);
+      
+      // Alternate between player colors
+      let fwColor = random() > 0.5 ? 
+          selectedCharacters.player1.color : 
+          selectedCharacters.player2.color;
+          
+      fireworks.push(new Firework(x, y, fwColor));
+    }
+    
+    drawFireworks();
+    
+    // If countdown finished, start the game
+    if (elapsedSeconds >= countdownDuration) {
+      gameStartCountdown = false;
+    }
+    
+    return;
+  }
+
   if (characterSelection) {
+    if (selectionTransition) {
+      // Display character 1 selection and transition countdown
+      background('#143025');
+      textSize(36);
+      fill('#FFFFFF');
+      textAlign(CENTER, CENTER);
+      
+      // Calculate remaining time
+      let elapsedSeconds = (millis() - transitionTimer) / 1000;
+      let remainingTime = Math.ceil(transitionDuration - elapsedSeconds);
+      
+      // Show title
+      text('Player 1 selected ' + selectedCharacters.player1.name + '!', canvasWidth / 2, canvasHeight * 0.22);
+      
+      // Draw selected character icon with animation
+      fill(selectedCharacters.player1.color);
+      let iconSize = 120;
+      // Add subtle pulsing animation to the icon
+      let pulseAmount = sin(millis() * 0.005) * 10; // Subtle pulse effect
+      let animatedSize = iconSize + pulseAmount;
+      
+      // Background rectangle with rounded corners
+      rect(canvasWidth/2 - animatedSize/2, canvasHeight * 0.35 - animatedSize/2, 
+           animatedSize, animatedSize, 15);
+           
+      // Draw the character icon with slight rotation
+      push();
+      translate(canvasWidth/2, canvasHeight * 0.35);
+      rotate(sin(millis() * 0.001) * 0.05); // Very subtle rotation
+      drawCharacterIcon(selectedCharacters.player1.name, 0, 0, animatedSize * 0.8);
+      pop();
+      
+      // Show countdown
+      textSize(48);
+      fill('#FFD700'); // Gold color
+      text('Player 2 get ready!', canvasWidth / 2, canvasHeight * 0.6);
+      text(remainingTime, canvasWidth / 2, canvasHeight * 0.75);
+      
+      // Show skip instruction for both desktop and mobile users
+      textSize(16);
+      fill('#FFFFFF');
+      if (windowWidth < 700) {
+        text('Tap screen to continue', canvasWidth / 2, canvasHeight * 0.85);
+      } else {
+        text('Press SPACE or ENTER to continue', canvasWidth / 2, canvasHeight * 0.85);
+      }
+      
+      // Create sparkle effects around the character in a more interesting pattern
+      if (random() < 0.35) { // Slightly increased chance
+        // Create multiple sparkles in a circular pattern
+        let baseAngle = frameCount * 0.05; // Slowly rotating base angle
+        let sparkleCount = 1 + int(random(2)); // 1-2 sparkles per frame
+        
+        for (let i = 0; i < sparkleCount; i++) {
+          let angle = baseAngle + i * (TWO_PI / 8) + random(-0.2, 0.2);
+          let distance = random(iconSize/2, iconSize * 1.2);
+          let x = canvasWidth/2 + cos(angle) * distance;
+          let y = canvasHeight * 0.35 + sin(angle) * distance;
+          
+          // Alternate between character color and gold
+          let sparkleColor = (i % 2 === 0) ? 
+              selectedCharacters.player1.color : 
+              '#FFD700'; // Gold color
+              
+          fireworks.push(new Firework(x, y, sparkleColor));
+        }
+      }
+      
+      drawFireworks();
+      
+      // Transition to player 2 selection after countdown
+      if (elapsedSeconds >= transitionDuration) {
+        selectionTransition = false;
+      }
+      
+      return;
+    }
+    
     drawCharacterSelection();
     return;
   }
@@ -935,6 +1128,19 @@ function playScoreSound() {
  * Handle key presses (restart, etc)
  */
 function keyPressed() {
+  // Skip transition if space/enter key is pressed
+  if (selectionTransition && (key === ' ' || keyCode === ENTER || keyCode === 13)) {
+    selectionTransition = false;
+    return;
+  }
+  
+  // Skip countdown if space/enter key is pressed
+  if (gameStartCountdown && (key === ' ' || keyCode === ENTER || keyCode === 13)) {
+    gameStartCountdown = false;
+    return;
+  }
+  
+  // Reset game when Z is pressed after game over
   if (gameOver && (key === 'z' || key === 'Z')) {
     players[0].score = 0;
     players[1].score = 0;
@@ -942,6 +1148,8 @@ function keyPressed() {
     winner = '';
     modeSelection = true;
     characterSelection = false;
+    selectionTransition = false;
+    gameStartCountdown = false;
     selectedCharacters = { player1: null, player2: null };
   }
 }
