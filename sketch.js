@@ -1,19 +1,30 @@
+/**
+ * Descendants Magic Pong - Main Game Script
+ * @fileoverview Main logic for Descendants Magic Pong, a p5.js game.
+ * @author Shawn
+ */
+
 // Game variables
 let canvasWidth = 800; // Default width
 let canvasHeight = 450; // Default height
-let ball, players;
+/** @type {Object} ball - The ball object */
+let ball;
+/** @type {Array<Object>} players - Array of player paddle objects */
+let players;
 let paddleSound;
 let scoreSound;
 let gameOver = false;
 let winner = '';
 let fireworks = [];
 
-// Add a mode selection screen
+// Game mode and character selection
 let modeSelection = true;
 let onePlayerMode = false;
-
-// Add a character selection screen
 let characterSelection = false;
+/**
+ * List of available characters
+ * @type {Array<{name: string, color: string}>}
+ */
 let characters = [
   { name: 'Mal', color: '#7731A0' },
   { name: 'Evie', color: '#4169E1' },
@@ -22,8 +33,19 @@ let characters = [
   { name: 'Gil', color: '#FFA500' },
   { name: 'Carlos', color: '#FFFFFF' } // Added Carlos (white)
 ];
+/**
+ * Selected characters for each player
+ * @type {{player1: Object|null, player2: Object|null}}
+ */
 let selectedCharacters = { player1: null, player2: null };
 
+/**
+ * Firework effect for win screen
+ * @constructor
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {string} color - Color string
+ */
 function Firework(x, y, color) {
   this.x = x;
   this.y = y;
@@ -38,7 +60,6 @@ function Firework(x, y, color) {
       alpha: 255
     });
   }
-
   this.update = function () {
     for (let p of this.particles) {
       p.x += p.speedX;
@@ -47,7 +68,6 @@ function Firework(x, y, color) {
     }
     this.particles = this.particles.filter(p => p.alpha > 0);
   };
-
   this.show = function () {
     noStroke();
     for (let p of this.particles) {
@@ -57,6 +77,9 @@ function Firework(x, y, color) {
   };
 }
 
+/**
+ * Draw all fireworks and update their state
+ */
 function drawFireworks() {
   for (let firework of fireworks) {
     firework.update();
@@ -65,12 +88,100 @@ function drawFireworks() {
   fireworks = fireworks.filter(f => f.particles.length > 0);
 }
 
+/**
+ * Preload sound assets
+ */
 function preload() {
   soundFormats('mp3');
   paddleSound = loadSound('sounds/539437__lord-imperor__table-whack.mp3');
   scoreSound = loadSound('sounds/546163__sieuamthanh__wa-dealio-12.wav');
 }
 
+/**
+ * Draw a unique icon for each character.
+ * @param {string} name - Character name
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {number} size - Icon size
+ */
+function drawCharacterIcon(name, x, y, size) {
+  push();
+  translate(x, y);
+  noStroke();
+  switch (name) {
+    case 'Mal':
+      // Mal: purple star
+      fill('#7731A0');
+      beginShape();
+      for (let i = 0; i < 10; i++) {
+        let angle = i * PI / 5;
+        let r = i % 2 === 0 ? size * 0.5 : size * 0.2;
+        vertex(r * cos(angle), r * sin(angle));
+      }
+      endShape(CLOSE);
+      break;
+    case 'Evie':
+      // Evie: blue crown
+      fill('#4169E1');
+      beginShape();
+      vertex(-size * 0.3, size * 0.2);
+      vertex(-size * 0.2, -size * 0.2);
+      vertex(0, size * 0.1 - size * 0.3);
+      vertex(size * 0.2, -size * 0.2);
+      vertex(size * 0.3, size * 0.2);
+      vertex(0, size * 0.3);
+      endShape(CLOSE);
+      break;
+    case 'Jay':
+      // Jay: gold lightning bolt
+      fill('#FFD700');
+      beginShape();
+      vertex(-size * 0.15, -size * 0.2);
+      vertex(size * 0.05, 0);
+      vertex(-size * 0.05, 0);
+      vertex(size * 0.15, size * 0.2);
+      vertex(0, 0.05 * size);
+      vertex(size * 0.1, -size * 0.1);
+      vertex(-size * 0.1, -size * 0.1);
+      endShape(CLOSE);
+      break;
+    case 'Uma':
+      // Uma: dark blue trident
+      fill('#00008B');
+      rect(-size * 0.05, -size * 0.2, size * 0.1, size * 0.4, 3);
+      rect(-size * 0.18, -size * 0.18, size * 0.08, size * 0.18, 2);
+      rect(size * 0.1, -size * 0.18, size * 0.08, size * 0.18, 2);
+      rect(-size * 0.04, -size * 0.3, size * 0.08, size * 0.1, 2);
+      break;
+    case 'Gil':
+      // Gil: orange shield
+      fill('#FFA500');
+      beginShape();
+      vertex(0, -size * 0.2);
+      bezierVertex(size * 0.2, -size * 0.1, size * 0.2, size * 0.2, 0, size * 0.3);
+      bezierVertex(-size * 0.2, size * 0.2, -size * 0.2, -size * 0.1, 0, -size * 0.2);
+      endShape(CLOSE);
+      break;
+    case 'Carlos':
+      // Carlos: white paw print
+      fill(255);
+      ellipse(0, 0, size * 0.35, size * 0.28);
+      ellipse(-size * 0.13, -size * 0.13, size * 0.12, size * 0.12);
+      ellipse(size * 0.13, -size * 0.13, size * 0.12, size * 0.12);
+      ellipse(-size * 0.08, size * 0.1, size * 0.09, size * 0.09);
+      ellipse(size * 0.08, size * 0.1, size * 0.09, size * 0.09);
+      break;
+    default:
+      // Default: colored circle
+      fill(200);
+      ellipse(0, 0, size * 0.7, size * 0.7);
+  }
+  pop();
+}
+
+/**
+ * Draw the character selection screen
+ */
 function drawCharacterSelection() {
   background('#143025');
   textSize(windowWidth < 700 ? 22 : 32);
@@ -104,9 +215,7 @@ function drawCharacterSelection() {
         let char = characters[i];
         fill(char.color);
         rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
-        if (char.name === 'Carlos') {
-          drawDogIcon(x, y, iconSize * 0.6);
-        }
+        drawCharacterIcon(char.name, x, y, iconSize * 0.6);
         fill('#FFFFFF');
         textSize(11);
         text(char.name, x, y + labelOffset * 0.6);
@@ -116,9 +225,7 @@ function drawCharacterSelection() {
         let char = characters[i];
         fill(char.color);
         rect(xOffset * (i + 1) - iconSize / 2, gridStartY + iconSize / 2 - iconSize / 2, iconSize, iconSize, 10);
-        if (char.name === 'Carlos') {
-          drawDogIcon(xOffset * (i + 1), gridStartY + iconSize / 2, iconSize * 0.6);
-        }
+        drawCharacterIcon(char.name, xOffset * (i + 1), gridStartY + iconSize / 2, iconSize * 0.6);
         fill('#FFFFFF');
         textSize(16);
         text(char.name, xOffset * (i + 1), gridStartY + iconSize / 2 + labelOffset);
@@ -143,9 +250,7 @@ function drawCharacterSelection() {
         let char = characters[i];
         fill(char.color);
         rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
-        if (char.name === 'Carlos') {
-          drawDogIcon(x, y, iconSize * 0.6);
-        }
+        drawCharacterIcon(char.name, x, y, iconSize * 0.6);
         fill('#FFFFFF');
         textSize(11);
         text(char.name, x, y + labelOffset * 0.6);
@@ -155,9 +260,7 @@ function drawCharacterSelection() {
         let char = characters[i];
         fill(char.color);
         rect(xOffset * (i + 1) - iconSize / 2, gridStartY + iconSize / 2 - iconSize / 2, iconSize, iconSize, 10);
-        if (char.name === 'Carlos') {
-          drawDogIcon(xOffset * (i + 1), gridStartY + iconSize / 2, iconSize * 0.6);
-        }
+        drawCharacterIcon(char.name, xOffset * (i + 1), gridStartY + iconSize / 2, iconSize * 0.6);
         fill('#FFFFFF');
         textSize(16);
         text(char.name, xOffset * (i + 1), gridStartY + iconSize / 2 + labelOffset);
@@ -166,27 +269,9 @@ function drawCharacterSelection() {
   }
 }
 
-// Draw a simple dog icon for Carlos
-function drawDogIcon(x, y, size) {
-  push();
-  translate(x, y);
-  noStroke();
-  fill(255);
-  // Head
-  ellipse(0, 0, size, size * 0.8);
-  // Ears
-  ellipse(-size * 0.35, -size * 0.3, size * 0.3, size * 0.4);
-  ellipse(size * 0.35, -size * 0.3, size * 0.3, size * 0.4);
-  // Eyes
-  fill(0);
-  ellipse(-size * 0.13, -size * 0.07, size * 0.12, size * 0.12);
-  ellipse(size * 0.13, -size * 0.07, size * 0.12, size * 0.12);
-  // Nose
-  fill(80);
-  ellipse(0, size * 0.13, size * 0.13, size * 0.09);
-  pop();
-}
-
+/**
+ * Handle mouse presses for mode/character selection
+ */
 function mousePressed() {
   if (modeSelection) {
     let btnW = canvasWidth * 0.5;
@@ -272,8 +357,10 @@ function mousePressed() {
   }
 }
 
+/**
+ * Set up all game elements and paddles
+ */
 function setupGameElements() {
-  // Responsive canvas sizing for desktop and mobile
   const maxW = 900;
   const maxH = 540; // Reduce vertical height for desktop to avoid scrolling
   let w = window.innerWidth;
@@ -282,11 +369,9 @@ function setupGameElements() {
 
   // Prefer landscape, but handle portrait gracefully
   if (w / h > aspect) {
-    // Window is wider than aspect, limit by height
     canvasHeight = Math.min(h * 0.98, maxH);
     canvasWidth = canvasHeight * aspect;
   } else {
-    // Window is taller than aspect, limit by width
     canvasWidth = Math.min(w * 0.98, maxW);
     canvasHeight = canvasWidth / aspect;
   }
@@ -326,7 +411,9 @@ function setupGameElements() {
   ];
 }
 
-// Modify ball color based on its position
+/**
+ * Update the ball's color based on its position
+ */
 function updateBallColor() {
   if (ball.x < canvasWidth / 2) {
     ball.color = players[0].color; // Player 1's color
@@ -335,7 +422,9 @@ function updateBallColor() {
   }
 }
 
-// Adjust paddle size after each point
+/**
+ * Adjust paddle size after each point
+ */
 function adjustPaddleSize() {
   let minHeight = canvasHeight * 0.135; // 50% of initial height
   let decrement = (players[0].height - minHeight) / 5; // Decrease size over 5 points
@@ -344,25 +433,34 @@ function adjustPaddleSize() {
   players[1].height = Math.max(minHeight, players[1].height - decrement);
 }
 
-// Slow down ball after a point is scored
+/**
+ * Slow down the ball after a point is scored
+ */
 function slowDownBall() {
   ball.speedX *= 0.5;
   ball.speedY *= 0.5;
 }
 
-// Add spin to the ball based on collision angle
+/**
+ * Calculate the bounce angle for the ball
+ * @param {number} ballY
+ * @param {number} paddleY
+ * @param {number} paddleHeight
+ * @returns {number}
+ */
 function calculateBounceAngle(ballY, paddleY, paddleHeight) {
   let relativeIntersectY = paddleY - ballY;
   let normalizedIntersectY = relativeIntersectY / (paddleHeight / 2);
   let bounceAngle = normalizedIntersectY * canvasHeight * 0.01;
 
-  // Add spin effect
   ball.speedY += normalizedIntersectY * canvasHeight * 0.002;
 
   return bounceAngle;
 }
 
-// Improved touch controls for both players (fix for p5.js canvas)
+/**
+ * Set up touch controls for mobile
+ */
 function setupTouchControls() {
   let touchStartX = null;
   let touchStartY = null;
@@ -374,7 +472,6 @@ function setupTouchControls() {
       const rect = document.querySelector('canvas').getBoundingClientRect();
       touchStartX = touch.clientX - rect.left;
       touchStartY = touch.clientY - rect.top;
-      // Left half for Player 1, right half for Player 2
       activePlayer = (touchStartX < canvasWidth / 2) ? 0 : 1;
     }
     event.preventDefault();
@@ -405,7 +502,9 @@ function setupTouchControls() {
   }, { passive: false });
 }
 
-// p5.js setup function - runs once at the beginning
+/**
+ * p5.js setup function - runs once at the beginning
+ */
 function setup() {
   setupGameElements();
   let canvas = createCanvas(canvasWidth, canvasHeight);
@@ -413,7 +512,9 @@ function setup() {
   setupTouchControls();
 }
 
-// p5.js draw function - loops continuously for animation
+/**
+ * p5.js draw function - main game loop
+ */
 function draw() {
   if (modeSelection) {
     background('#143025');
@@ -452,7 +553,6 @@ function draw() {
     fill('#FFFFFF');
     text('Press Z to restart', canvasWidth / 2, canvasHeight / 2 + 60);
 
-    // Trigger fireworks
     if (fireworks.length === 0) {
       for (let i = 0; i < 5; i++) {
         fireworks.push(new Firework(random(canvasWidth), random(canvasHeight / 2), color(winner === selectedCharacters.player1.name ? players[0].color : players[1].color)));
@@ -463,23 +563,19 @@ function draw() {
     return;
   }
 
-  // Draw enchanted forest background
   background('#143025'); // Dark forest green
   
-  // Draw magical sparkles
   for (let i = 0; i < 20; i++) {
     fill(255, 255, 255, 100);
     circle(random(canvasWidth), random(canvasHeight), random(2, 4));
   }
   
-  // Draw the scoreboard
   textSize(24);
   fill(players[0].color);
   text(selectedCharacters.player1.name + ': ' + players[0].score, canvasWidth * 0.15, canvasHeight * 0.08);
   fill(players[1].color);
   text(selectedCharacters.player2.name + ': ' + players[1].score, canvasWidth * 0.6, canvasHeight * 0.08);
 
-  // Draw player instructions at the bottom
   textSize(16);
   fill('#FFFFFF');
   textAlign(LEFT, BOTTOM);
@@ -487,33 +583,26 @@ function draw() {
   textAlign(RIGHT, BOTTOM);
   text(selectedCharacters.player2.name + '\nUP: Move Up\nDOWN: Move Down', canvasWidth - 16, canvasHeight - 60);
   
-  // Draw the middle line
   stroke(255, 255, 255, 100);
   strokeWeight(2);
   line(canvasWidth / 2, 0, canvasWidth / 2, canvasHeight);
   noStroke();
   
-  // Draw the magical ball
   fill(ball.color);
   circle(ball.x, ball.y, ball.size);
   
-  // Add a magical glow effect to the ball
   fill(255, 255, 255, 50);
   circle(ball.x, ball.y, ball.size + 10);
   
-  // Move the ball
   ball.x += ball.speedX;
   ball.y += ball.speedY;
   
-  // Ball bounces off top and bottom
   if (ball.y <= ball.size / 2 || ball.y >= canvasHeight - ball.size / 2) {
     ball.speedY *= -1;
     playBounceSound();
   }
   
-  // Check if player scored
   if (ball.x < 0) {
-    // Player 2 scores
     players[1].score += 1;
     playScoreSound();
     adjustPaddleSize();
@@ -525,7 +614,6 @@ function draw() {
       resetBall("evie");
     }
   } else if (ball.x > canvasWidth) {
-    // Player 1 scores
     players[0].score += 1;
     playScoreSound();
     adjustPaddleSize();
@@ -538,15 +626,12 @@ function draw() {
     }
   }
   
-  // Draw Player 1's paddle (left player)
   fill(players[0].color);
   rect(players[0].x, players[0].y - players[0].height / 2, players[0].width, players[0].height, 10);
   
-  // Draw Player 2's paddle (right player)
   fill(players[1].color);
   rect(players[1].x - players[1].width, players[1].y - players[1].height / 2, players[1].width, players[1].height, 10);
   
-  // Move Player 1's paddle with W and S keys
   if (keyIsDown(87) && players[0].y > players[0].height / 2) { // W key
     players[0].y -= players[0].speed;
   }
@@ -554,7 +639,6 @@ function draw() {
     players[0].y += players[0].speed;
   }
 
-  // Move Player 2's paddle with UP and DOWN arrow keys (only if NOT onePlayerMode)
   if (!onePlayerMode && keyIsDown(UP_ARROW) && players[1].y > players[1].height / 2) {
     players[1].y -= players[1].speed;
   }
@@ -562,9 +646,7 @@ function draw() {
     players[1].y += players[1].speed;
   }
 
-  // AI for Player 2 in 1 Player mode
   if (onePlayerMode && !gameOver) {
-    // Make AI easier: slower speed and add a small reaction delay
     let aiTarget = ball.y;
     let aiSpeed = players[1].speed * 0.55; // slower AI
     let aiDelay = 32; // only move if ball is far enough away
@@ -577,7 +659,6 @@ function draw() {
     }
   }
   
-  // Check for ball hitting Player 1's paddle (left)
   if (ball.x - ball.size / 2 <= players[0].x + players[0].width && 
       ball.y >= players[0].y - players[0].height / 2 && 
       ball.y <= players[0].y + players[0].height / 2 &&
@@ -586,16 +667,13 @@ function draw() {
     ball.speedX = Math.abs(ball.speedX) + canvasWidth * 0.0005; // Make it go right and slightly faster
     ball.x = players[0].x + players[0].width + ball.size / 2; // Prevent sticking
     
-    // Change the angle based on where it hit the paddle
     let angle = calculateBounceAngle(ball.y, players[0].y, players[0].height);
     ball.speedY = angle;
     
-    // Add magical effect
     showMagicEffect(ball.x, ball.y, players[0].color);
     playBounceSound();
   }
   
-  // Check for ball hitting Player 2's paddle (right)
   if (ball.x + ball.size / 2 >= players[1].x - players[1].width && 
       ball.y >= players[1].y - players[1].height / 2 && 
       ball.y <= players[1].y + players[1].height / 2 &&
@@ -604,11 +682,9 @@ function draw() {
     ball.speedX = -Math.abs(ball.speedX) - canvasWidth * 0.0005; // Make it go left and slightly faster
     ball.x = players[1].x - players[1].width - ball.size / 2; // Prevent sticking
     
-    // Change the angle based on where it hit the paddle
     let angle = calculateBounceAngle(ball.y, players[1].y, players[1].height);
     ball.speedY = angle;
     
-    // Add magical effect
     showMagicEffect(ball.x, ball.y, players[1].color);
     playBounceSound();
   }
@@ -617,12 +693,14 @@ function draw() {
   drawFireworks();
 }
 
-// Reset the ball after scoring
+/**
+ * Reset the ball after scoring
+ * @param {string} lastScorer - 'mal' or 'evie'
+ */
 function resetBall(lastScorer) {
   ball.x = canvasWidth / 2;
   ball.y = canvasHeight / 2;
   
-  // Give the ball a random angle but ensure it goes toward the player who just lost
   ball.speedY = random(-canvasHeight * 0.007, canvasHeight * 0.007);
   
   if (lastScorer === "mal") {
@@ -632,38 +710,52 @@ function resetBall(lastScorer) {
   }
 }
 
-// Show magical effect when ball hits paddle
+/**
+ * Show magical effect when ball hits paddle
+ * @param {number} x
+ * @param {number} y
+ * @param {string} color
+ */
 function showMagicEffect(x, y, color) {
-  // This is a placeholder - in a full game you might add particle effects here
-  // For now we'll rely on the ball's glow effect
+  // Placeholder for magical effect
 }
 
-// Placeholder for sound effects
+/**
+ * Play paddle bounce sound
+ */
 function playBounceSound() {
   if (paddleSound && paddleSound.isLoaded()) {
     paddleSound.play();
   }
 }
 
+/**
+ * Play score sound
+ */
 function playScoreSound() {
   if (scoreSound && scoreSound.isLoaded()) {
     scoreSound.play();
   }
 }
 
+/**
+ * Handle key presses (restart, etc)
+ */
 function keyPressed() {
   if (gameOver && (key === 'z' || key === 'Z')) {
     players[0].score = 0;
     players[1].score = 0;
     gameOver = false;
     winner = '';
-    // After game over, return to mode selection
     modeSelection = true;
     characterSelection = false;
     selectedCharacters = { player1: null, player2: null };
   }
 }
 
+/**
+ * Handle window resize events
+ */
 function windowResized() {
   setupGameElements();
   resizeCanvas(canvasWidth, canvasHeight);
