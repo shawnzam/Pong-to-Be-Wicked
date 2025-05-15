@@ -17,6 +17,24 @@ Welcome to Descendants Magic Pong! A fun two-player game themed after Disney's D
 - Sparkly effects and glowing ball
 - Dynamic ball physics - the angle changes based on where the ball hits the paddle
 
+## New Features
+
+- **Transition Screen**: After Player 1 selects their character, a 3-second transition screen displays their choice with animations and firework effects. Players can skip this screen using space/enter (desktop) or tap (mobile).
+- **Countdown Screen**: After Player 2 selects their character, a 3-second countdown screen appears, showing both characters with a "VS" graphic and countdown numbers. Firework effects and a "Get Ready!" message are included. Players can skip this screen using space/enter (desktop) or tap (mobile).
+- **Improved AI Logic**: In single-player mode, the AI tracks the ball's vertical position, moves at 55% of the player's paddle speed, and includes a reaction delay of 32 pixels for more realistic gameplay.
+
+## Single-Player Mode Instructions
+
+- **Player 1 (Mal)**: Use W and S keys to move your paddle up and down.
+- The AI will control Player 2 (Evie).
+- Try to bounce the magical ball past the AI's paddle to score points.
+
+## Gameplay Tips
+
+- Use the edges of your paddle to change the ball's angle and make it harder for your opponent to return.
+- Watch for the ball's speed increase as the game progresses.
+- In single-player mode, anticipate the AI's reaction delay to gain an advantage.
+
 ## How to Run the Game
 
 1. In VS Code, right-click on the `index.html` file
