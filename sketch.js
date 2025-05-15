@@ -44,12 +44,23 @@ let selectedCharacters = { player1: null, player2: null };
  * @constructor
  * @param {number} x - X position
  * @param {number} y - Y position
- * @param {string} color - Color string
+ * @param {string} colorStr - Color string
  */
-function Firework(x, y, color) {
+function Firework(x, y, colorStr) {
   this.x = x;
   this.y = y;
-  this.color = color;
+  
+  // Handle color safely - ensure we have a valid color string
+  if (typeof colorStr !== 'string' || !colorStr.startsWith('#')) {
+    // Default color if invalid
+    this.colorStr = '#FFFFFF';  
+  } else {
+    this.colorStr = colorStr;
+  }
+  
+  // Convert string to p5.js color object
+  this.colorObj = color(this.colorStr); 
+  
   this.particles = [];
   for (let i = 0; i < 50; i++) {
     this.particles.push({
@@ -64,15 +75,23 @@ function Firework(x, y, color) {
     for (let p of this.particles) {
       p.x += p.speedX;
       p.y += p.speedY;
-      p.alpha -= 5;
+      p.alpha -= 10; // Faster fade-out (increased from 5 to 10)
     }
     this.particles = this.particles.filter(p => p.alpha > 0);
   };
   this.show = function () {
     noStroke();
     for (let p of this.particles) {
-      fill(red(this.color), green(this.color), blue(this.color), p.alpha);
-      circle(p.x, p.y, 5);
+      // Create a safe color string with appropriate alpha
+      if (this.colorStr && this.colorStr.startsWith('#')) {
+        // For hex colors, append the alpha value
+        fill(this.colorStr + hexAlpha(p.alpha));
+      } else {
+        // Fallback to white with alpha if colorStr is invalid
+        fill('#FFFFFF' + hexAlpha(p.alpha));
+      }
+      // Smaller particles for reduced effect
+      circle(p.x, p.y, 3);  // Reduced from 5 to 3
     }
   };
 }
@@ -98,6 +117,18 @@ function preload() {
 }
 
 /**
+ * Convert alpha value (0-255) to a two-digit hex string
+ * @param {number} alpha - Alpha value 0-255
+ * @returns {string} - Hex representation
+ */
+function hexAlpha(alpha) {
+  // Ensure alpha is between 0-255
+  alpha = constrain(Math.floor(alpha), 0, 255);
+  let hex = alpha.toString(16);
+  return hex.length === 1 ? '0' + hex : hex;
+}
+
+/**
  * Draw a unique icon for each character.
  * @param {string} name - Character name
  * @param {number} x - X position
@@ -107,73 +138,122 @@ function preload() {
 function drawCharacterIcon(name, x, y, size) {
   push();
   translate(x, y);
-  noStroke();
+  
+  // Add stroke to all icons for better visibility
+  strokeWeight(2);
+  stroke('#FFFFFF'); // White stroke for better visibility
+  
   switch (name) {
     case 'Mal':
       // Mal: purple star
       fill('#7731A0');
+      // Draw a star using a simpler approach
+      let angle = TWO_PI / 10;
       beginShape();
-      for (let i = 0; i < 10; i++) {
-        let angle = i * PI / 5;
-        let r = i % 2 === 0 ? size * 0.5 : size * 0.2;
-        vertex(r * cos(angle), r * sin(angle));
+      for (let a = 0; a < TWO_PI; a += angle) {
+        let sx = cos(a) * size * 0.4;
+        let sy = sin(a) * size * 0.4;
+        vertex(sx, sy);
+        sx = cos(a + angle/2) * size * 0.2;
+        sy = sin(a + angle/2) * size * 0.2;
+        vertex(sx, sy);
       }
       endShape(CLOSE);
       break;
     case 'Evie':
       // Evie: blue crown
       fill('#4169E1');
+      // Simplified crown
       beginShape();
-      vertex(-size * 0.3, size * 0.2);
-      vertex(-size * 0.2, -size * 0.2);
-      vertex(0, size * 0.1 - size * 0.3);
-      vertex(size * 0.2, -size * 0.2);
-      vertex(size * 0.3, size * 0.2);
-      vertex(0, size * 0.3);
+      vertex(-size * 0.35, size * 0.2);
+      vertex(-size * 0.25, -size * 0.2);
+      vertex(-size * 0.1, size * 0.05);
+      vertex(0, -size * 0.25);
+      vertex(size * 0.1, size * 0.05);
+      vertex(size * 0.25, -size * 0.2);
+      vertex(size * 0.35, size * 0.2);
       endShape(CLOSE);
       break;
     case 'Jay':
       // Jay: gold lightning bolt
       fill('#FFD700');
+      // More pronounced lightning bolt
       beginShape();
-      vertex(-size * 0.15, -size * 0.2);
-      vertex(size * 0.05, 0);
-      vertex(-size * 0.05, 0);
-      vertex(size * 0.15, size * 0.2);
-      vertex(0, 0.05 * size);
-      vertex(size * 0.1, -size * 0.1);
-      vertex(-size * 0.1, -size * 0.1);
+      vertex(-size * 0.1, -size * 0.3);
+      vertex(size * 0.1, -size * 0.05);
+      vertex(0, -size * 0.05);
+      vertex(size * 0.2, size * 0.3);
+      vertex(0, size * 0.05);
+      vertex(-size * 0.1, size * 0.05);
       endShape(CLOSE);
       break;
     case 'Uma':
       // Uma: dark blue trident
       fill('#00008B');
-      rect(-size * 0.05, -size * 0.2, size * 0.1, size * 0.4, 3);
-      rect(-size * 0.18, -size * 0.18, size * 0.08, size * 0.18, 2);
-      rect(size * 0.1, -size * 0.18, size * 0.08, size * 0.18, 2);
-      rect(-size * 0.04, -size * 0.3, size * 0.08, size * 0.1, 2);
+      // Draw handle
+      rect(-size * 0.05, -size * 0.3, size * 0.1, size * 0.5, 3);
+      // Draw prongs
+      beginShape();
+      vertex(-size * 0.25, -size * 0.3);
+      vertex(-size * 0.25, -size * 0.1);
+      vertex(-size * 0.15, -size * 0.1);
+      vertex(-size * 0.15, -size * 0.3);
+      endShape(CLOSE);
+      
+      beginShape();
+      vertex(0, -size * 0.4);
+      vertex(0, -size * 0.2);
+      vertex(size * 0.1, -size * 0.2);
+      vertex(size * 0.1, -size * 0.4);
+      endShape(CLOSE);
+      
+      beginShape();
+      vertex(size * 0.25, -size * 0.3);
+      vertex(size * 0.25, -size * 0.1);
+      vertex(size * 0.15, -size * 0.1);
+      vertex(size * 0.15, -size * 0.3);
+      endShape(CLOSE);
       break;
     case 'Gil':
       // Gil: orange shield
       fill('#FFA500');
+      // Clearer shield shape
       beginShape();
-      vertex(0, -size * 0.2);
-      bezierVertex(size * 0.2, -size * 0.1, size * 0.2, size * 0.2, 0, size * 0.3);
-      bezierVertex(-size * 0.2, size * 0.2, -size * 0.2, -size * 0.1, 0, -size * 0.2);
+      vertex(0, -size * 0.3);
+      vertex(size * 0.25, -size * 0.1);
+      vertex(size * 0.2, size * 0.2);
+      vertex(0, size * 0.3);
+      vertex(-size * 0.2, size * 0.2);
+      vertex(-size * 0.25, -size * 0.1);
       endShape(CLOSE);
+      // Add shield detail
+      noStroke();
+      fill('#FFA500'); // Simplified - removed alpha
+      ellipse(0, 0, size * 0.2, size * 0.3);
+      stroke('#FFFFFF'); // Restore stroke
       break;
     case 'Carlos':
-      // Carlos: white paw print
-      fill(255);
-      ellipse(0, 0, size * 0.35, size * 0.28);
-      ellipse(-size * 0.13, -size * 0.13, size * 0.12, size * 0.12);
-      ellipse(size * 0.13, -size * 0.13, size * 0.12, size * 0.12);
-      ellipse(-size * 0.08, size * 0.1, size * 0.09, size * 0.09);
-      ellipse(size * 0.08, size * 0.1, size * 0.09, size * 0.09);
+      // Carlos: white paw print with black stroke for contrast
+      strokeWeight(2);
+      stroke('#000000'); // Use hex for black stroke
+      fill('#FFFFFF'); // Use hex for white fill
+      
+      // Make the paw print more prominent for Carlos
+      // Main paw pad
+      ellipse(0, 0, size * 0.45, size * 0.4);
+      
+      // Toe beans - larger and more distinct
+      ellipse(-size * 0.18, -size * 0.18, size * 0.18, size * 0.18);
+      ellipse(0, -size * 0.22, size * 0.18, size * 0.18);
+      ellipse(size * 0.18, -size * 0.18, size * 0.18, size * 0.18);
+      
+      // Bottom pads - larger and more distinct
+      ellipse(-size * 0.1, size * 0.15, size * 0.15, size * 0.15);
+      ellipse(size * 0.1, size * 0.15, size * 0.15, size * 0.15);
       break;
     default:
       // Default: colored circle
-      fill(200);
+      fill('#C0C0C0');
       ellipse(0, 0, size * 0.7, size * 0.7);
   }
   pop();
@@ -191,8 +271,6 @@ function drawCharacterSelection() {
   let iconSize = isMobile ? 48 : 100;
   let labelOffset = isMobile ? 32 : 70;
   let xOffset = canvasWidth / (characters.length + 1);
-
-  // Always keep selection grid at the top for both players
   let selectionTitleY = canvasHeight * 0.08;
   let gridStartY = canvasHeight * 0.15;
 
@@ -212,23 +290,35 @@ function drawCharacterSelection() {
         let row = Math.floor(i / cols);
         let x = startX + col * cellW + cellW / 2;
         let y = startY + row * cellH + cellH / 2;
-        let char = characters[i];
-        fill(char.color);
+        
+        // Draw background box
+        fill(characters[i].color);
         rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
-        drawCharacterIcon(char.name, x, y, iconSize * 0.6);
+        
+        // Draw character icon slightly larger for mobile
+        drawCharacterIcon(characters[i].name, x, y, iconSize * 0.8); 
+        
+        // Draw character name
         fill('#FFFFFF');
         textSize(11);
-        text(char.name, x, y + labelOffset * 0.6);
+        text(characters[i].name, x, y + labelOffset * 0.6);
       }
     } else {
       for (let i = 0; i < characters.length; i++) {
-        let char = characters[i];
-        fill(char.color);
-        rect(xOffset * (i + 1) - iconSize / 2, gridStartY + iconSize / 2 - iconSize / 2, iconSize, iconSize, 10);
-        drawCharacterIcon(char.name, xOffset * (i + 1), gridStartY + iconSize / 2, iconSize * 0.6);
+        let x = xOffset * (i + 1);
+        let y = gridStartY + iconSize / 2;
+        
+        // Draw background box
+        fill(characters[i].color);
+        rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
+        
+        // Draw character icon
+        drawCharacterIcon(characters[i].name, x, y, iconSize * 0.8); 
+        
+        // Draw character name
         fill('#FFFFFF');
         textSize(16);
-        text(char.name, xOffset * (i + 1), gridStartY + iconSize / 2 + labelOffset);
+        text(characters[i].name, x, y + labelOffset);
       }
     }
   } else {
@@ -247,23 +337,35 @@ function drawCharacterSelection() {
         let row = Math.floor(i / cols);
         let x = startX + col * cellW + cellW / 2;
         let y = startY + row * cellH + cellH / 2;
-        let char = characters[i];
-        fill(char.color);
+        
+        // Draw background box
+        fill(characters[i].color);
         rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
-        drawCharacterIcon(char.name, x, y, iconSize * 0.6);
+        
+        // Draw character icon slightly larger for mobile
+        drawCharacterIcon(characters[i].name, x, y, iconSize * 0.8);
+        
+        // Draw character name
         fill('#FFFFFF');
         textSize(11);
-        text(char.name, x, y + labelOffset * 0.6);
+        text(characters[i].name, x, y + labelOffset * 0.6);
       }
     } else {
       for (let i = 0; i < characters.length; i++) {
-        let char = characters[i];
-        fill(char.color);
-        rect(xOffset * (i + 1) - iconSize / 2, gridStartY + iconSize / 2 - iconSize / 2, iconSize, iconSize, 10);
-        drawCharacterIcon(char.name, xOffset * (i + 1), gridStartY + iconSize / 2, iconSize * 0.6);
+        let x = xOffset * (i + 1);
+        let y = gridStartY + iconSize / 2;
+        
+        // Draw background box
+        fill(characters[i].color);
+        rect(x - iconSize / 2, y - iconSize / 2, iconSize, iconSize, 10);
+        
+        // Draw character icon
+        drawCharacterIcon(characters[i].name, x, y, iconSize * 0.8);
+        
+        // Draw character name
         fill('#FFFFFF');
         textSize(16);
-        text(char.name, xOffset * (i + 1), gridStartY + iconSize / 2 + labelOffset);
+        text(characters[i].name, x, y + labelOffset);
       }
     }
   }
@@ -416,9 +518,19 @@ function setupGameElements() {
  */
 function updateBallColor() {
   if (ball.x < canvasWidth / 2) {
-    ball.color = players[0].color; // Player 1's color
+    // Ensure player 1's color is valid
+    if (typeof players[0].color === 'string' && players[0].color.startsWith('#')) {
+      ball.color = players[0].color;
+    } else {
+      ball.color = '#7731A0'; // Default purple color
+    }
   } else {
-    ball.color = players[1].color; // Player 2's color
+    // Ensure player 2's color is valid
+    if (typeof players[1].color === 'string' && players[1].color.startsWith('#')) {
+      ball.color = players[1].color;
+    } else {
+      ball.color = '#4169E1'; // Default blue color 
+    }
   }
 }
 
@@ -545,17 +657,31 @@ function draw() {
 
   if (gameOver) {
     background('#143025');
+    
+    // Get winner color and character info
+    let winnerIndex = winner === selectedCharacters.player1.name ? 0 : 1;
+    let winnerCharacter = winner === selectedCharacters.player1.name ? selectedCharacters.player1 : selectedCharacters.player2;
+    let winnerColor = winnerCharacter && winnerCharacter.color ? winnerCharacter.color : '#FFFFFF';
+    
+    // Draw winner icon above text
+    fill(winnerColor);
+    drawCharacterIcon(winner, canvasWidth / 2, canvasHeight * 0.35, 70);
+    
+    // Draw victory text
     textSize(48);
     fill('#FFD700');
     textAlign(CENTER, CENTER);
     text(winner + ' wins!', canvasWidth / 2, canvasHeight / 2);
+    
+    // Draw restart instruction
     textSize(24);
     fill('#FFFFFF');
     text('Press Z to restart', canvasWidth / 2, canvasHeight / 2 + 60);
 
+    // Create firework effects if none exist
     if (fireworks.length === 0) {
       for (let i = 0; i < 5; i++) {
-        fireworks.push(new Firework(random(canvasWidth), random(canvasHeight / 2), color(winner === selectedCharacters.player1.name ? players[0].color : players[1].color)));
+        fireworks.push(new Firework(random(canvasWidth), random(canvasHeight / 2), winnerColor));
       }
     }
 
@@ -565,16 +691,35 @@ function draw() {
 
   background('#143025'); // Dark forest green
   
+  // Draw starry background using hex color format
   for (let i = 0; i < 20; i++) {
-    fill(255, 255, 255, 100);
+    fill('#FFFFFF' + hexAlpha(100)); // White with semi-transparency
     circle(random(canvasWidth), random(canvasHeight), random(2, 4));
   }
   
+  // Display score with character icons - perfectly symmetrical alignment
   textSize(24);
+  
+  // Player 1 score with icon - left aligned
   fill(players[0].color);
-  text(selectedCharacters.player1.name + ': ' + players[0].score, canvasWidth * 0.15, canvasHeight * 0.08);
+  textAlign(LEFT, CENTER);
+  const iconSize = 30;
+  const iconMargin = canvasWidth * 0.04;
+  const textMargin = canvasWidth * 0.02;
+  
+  // Draw Player 1 icon and name on left side
+  drawCharacterIcon(selectedCharacters.player1.name, iconMargin, canvasHeight * 0.08, iconSize);
+  text(selectedCharacters.player1.name + ': ' + players[0].score, iconMargin + iconSize + textMargin, canvasHeight * 0.08);
+  
+  // Player 2 score with icon - right aligned mirror of player 1
   fill(players[1].color);
-  text(selectedCharacters.player2.name + ': ' + players[1].score, canvasWidth * 0.6, canvasHeight * 0.08);
+  textAlign(RIGHT, CENTER);
+  
+  // Draw Player 2 icon and name on right side
+  drawCharacterIcon(selectedCharacters.player2.name, canvasWidth - iconMargin, canvasHeight * 0.08, iconSize);
+  text(selectedCharacters.player2.name + ': ' + players[1].score, canvasWidth - iconMargin - iconSize - textMargin, canvasHeight * 0.08);
+  
+  textAlign(CENTER, CENTER);
 
   textSize(16);
   fill('#FFFFFF');
@@ -583,15 +728,35 @@ function draw() {
   textAlign(RIGHT, BOTTOM);
   text(selectedCharacters.player2.name + '\nUP: Move Up\nDOWN: Move Down', canvasWidth - 16, canvasHeight - 60);
   
-  stroke(255, 255, 255, 100);
+  // Draw center line with hex color format
+  stroke('#FFFFFF' + hexAlpha(100));  // White with semi-transparency
   strokeWeight(2);
   line(canvasWidth / 2, 0, canvasWidth / 2, canvasHeight);
   noStroke();
   
+  // Draw ball with magical trail effect
+  for (let i = 3; i > 0; i--) {
+    // Handle trail fading by using a safe color approach
+    let fadeAlpha = Math.floor(60 / i);
+    noStroke();
+    
+    if (typeof ball.color === 'string' && ball.color.startsWith('#')) {
+      // We have a hex color, safely create a faded version
+      fill(ball.color + hexAlpha(fadeAlpha));
+    } else {
+      // Fallback to a default color if the ball color is invalid
+      fill('#B026FF' + hexAlpha(fadeAlpha));
+    }
+    
+    circle(ball.x - ball.speedX * (i * 2), ball.y - ball.speedY * (i * 2), ball.size * (1 + i * 0.1));
+  }
+  
+  // Main ball
   fill(ball.color);
   circle(ball.x, ball.y, ball.size);
   
-  fill(255, 255, 255, 50);
+  // Ball glow - using hex format for safety
+  fill('#FFFFFF' + hexAlpha(50)); // White with 50 alpha
   circle(ball.x, ball.y, ball.size + 10);
   
   ball.x += ball.speedX;
@@ -626,11 +791,21 @@ function draw() {
     }
   }
   
+  // Draw player 1 paddle with character icon
   fill(players[0].color);
   rect(players[0].x, players[0].y - players[0].height / 2, players[0].width, players[0].height, 10);
+  drawCharacterIcon(selectedCharacters.player1.name, 
+                   players[0].x + players[0].width / 2, 
+                   players[0].y, 
+                   players[0].width * 1.5);
   
+  // Draw player 2 paddle with character icon
   fill(players[1].color);
   rect(players[1].x - players[1].width, players[1].y - players[1].height / 2, players[1].width, players[1].height, 10);
+  drawCharacterIcon(selectedCharacters.player2.name, 
+                   players[1].x - players[1].width / 2, 
+                   players[1].y, 
+                   players[1].width * 1.5);
   
   if (keyIsDown(87) && players[0].y > players[0].height / 2) { // W key
     players[0].y -= players[0].speed;
@@ -712,12 +887,30 @@ function resetBall(lastScorer) {
 
 /**
  * Show magical effect when ball hits paddle
- * @param {number} x
- * @param {number} y
- * @param {string} color
+ * @param {number} x - X position of the effect
+ * @param {number} y - Y position of the effect
+ * @param {string|object} colorValue - Color of the effect
  */
-function showMagicEffect(x, y, color) {
-  // Placeholder for magical effect
+function showMagicEffect(x, y, colorValue) {
+  // Ensure we have a valid color string
+  let safeColor;
+  
+  // If it's a string and starts with #, it's likely a valid hex color
+  if (typeof colorValue === 'string' && colorValue.startsWith('#')) {
+    safeColor = colorValue;
+  } else {
+    // Default to white if color is invalid
+    safeColor = '#FFFFFF';
+  }
+  
+  // Create particles for magical effect - reduced number of particles
+  for (let i = 0; i < 5; i++) {  // Reduced from 15 to 5 particles
+    fireworks.push(new Firework(
+      x + random(-20, 20),  // Reduced spread area
+      y + random(-20, 20),  // Reduced spread area
+      safeColor
+    ));
+  }
 }
 
 /**
